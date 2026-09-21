@@ -3,7 +3,6 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use App\Models\Household;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -12,7 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password', 'profile_pic'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -32,8 +31,33 @@ class User extends Authenticatable
         ];
     }
 
-    public function households()
+    public function notes()
     {
-        return $this->belongsToMany(Household::class);
+        return $this->hasMany(Note::class, 'created_by');
+    }
+
+    public function reminders()
+    {
+        return $this->hasMany(Reminder::class, 'created_by');
+    }
+
+    public function chartEntries()
+    {
+        return $this->hasMany(ChartEntry::class, 'created_by');
+    }
+
+    public function sharedNotes()
+    {
+        return $this->morphedByMany(Note::class, 'shareable', 'shares');
+    }
+
+    public function sharedReminders()
+    {
+        return $this->morphedByMany(Reminder::class, 'shareable', 'shares');
+    }
+
+    public function sharedChartEntries()
+    {
+        return $this->morphedByMany(ChartEntry::class, 'shareable', 'shares');
     }
 }

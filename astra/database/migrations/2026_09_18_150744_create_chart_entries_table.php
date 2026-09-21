@@ -11,9 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('households', function (Blueprint $table) {
+        Schema::create('chart_entries', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
+            $table->string('category');
+            $table->decimal('value', 10, 2);
+            $table->date('recorded_on');
+            $table->boolean('is_shared')->default(false);
             $table->timestamps();
         });
     }
@@ -23,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('households');
+        Schema::dropIfExists('chart_entries');
     }
 };

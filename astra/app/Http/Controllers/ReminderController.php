@@ -9,13 +9,10 @@ class ReminderController extends Controller
 {
     public function index(Request $request)
     {
-        $household = $request->user()->households()->firstOrFail();
+        $userId = $request->user()->id;
 
-        return Reminder::where('household_id', $household->id)
-            ->where(function ($query) use ($request) {
-                $query->where('is_shared', true)
-                    ->orWhere('created_by', $request->user()->id);
-            })
+        return Reminder::where('created_by', $userId)
+            ->orWhereHas('shares', fn ($query) => $query->where('user_id', $userId))
             ->orderBy('remind_at')
             ->get();
     }
@@ -23,23 +20,31 @@ class ReminderController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'note_id' => 'nullable|exists:notes,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'remind_at' => 'required|date',
+            'recurrence' => ['sometimes', 'in:'.implode(',', Reminder::RECURRENCES)],
             'is_shared' => 'sometimes|boolean',
+            'shared_with' => 'sometimes|array',
+            'shared_with.*' => 'integer|exists:users,id',
         ]);
 
-        $household = $request->user()->households()->firstOrFail();
-
-        $reminder = $household->reminders()->create([
+        $reminder = Reminder::create([
+            'note_id' => $request->note_id,
+            'created_by' => $request->user()->id,
             'title' => $request->title,
             'description' => $request->description,
             'remind_at' => $request->remind_at,
-            'created_by' => $request->user()->id,
+            'recurrence' => $request->input('recurrence', 'none'),
             'is_shared' => $request->boolean('is_shared'),
         ]);
 
-        return response()->json($reminder, 201);
+        if ($request->boolean('is_shared') && $request->filled('shared_with')) {
+            $reminder->sharedWithUsers()->sync($request->input('shared_with'));
+        }
+
+        return response()->json($reminder->load('sharedWithUsers'), 201);
     }
 
     public function update(Request $request, Reminder $reminder)
@@ -50,13 +55,20 @@ class ReminderController extends Controller
             'title' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
             'remind_at' => 'sometimes|required|date',
+            'recurrence' => ['sometimes', 'in:'.implode(',', Reminder::RECURRENCES)],
             'is_done' => 'sometimes|boolean',
             'is_shared' => 'sometimes|boolean',
+            'shared_with' => 'sometimes|array',
+            'shared_with.*' => 'integer|exists:users,id',
         ]);
 
-        $reminder->update($request->only('title', 'description', 'remind_at', 'is_done', 'is_shared'));
+        $reminder->update($request->only('title', 'description', 'remind_at', 'recurrence', 'is_done', 'is_shared'));
 
-        return $reminder;
+        if ($request->has('shared_with')) {
+            $reminder->sharedWithUsers()->sync($request->input('shared_with', []));
+        }
+
+        return $reminder->load('sharedWithUsers');
     }
 
     public function destroy(Request $request, Reminder $reminder)
@@ -68,13 +80,13 @@ class ReminderController extends Controller
         return response()->noContent();
     }
 
-    private function authorizeAccess(Request $request, $model)
+    private function authorizeAccess(Request $request, Reminder $reminder): void
     {
-        $household = $request->user()->households()->firstOrFail();
+        $userId = $request->user()->id;
 
-        $sameHousehold = $model->household_id === $household->id;
-        $canTouch = $model->is_shared || $model->created_by === $request->user()->id;
+        $canTouch = $reminder->created_by === $userId
+            || $reminder->shares()->where('user_id', $userId)->exists();
 
-        abort_unless($sameHousehold && $canTouch, 403);
+        abort_unless($canTouch, 403);
     }
 }

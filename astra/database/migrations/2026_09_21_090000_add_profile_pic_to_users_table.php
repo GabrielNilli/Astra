@@ -11,11 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('household_user', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('household_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->timestamps();
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('profile_pic')->nullable()->after('password');
         });
     }
 
@@ -24,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('household_user');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('profile_pic');
+        });
     }
 };

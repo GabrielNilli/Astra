@@ -13,14 +13,19 @@ return new class extends Migration
     {
         Schema::create('reminders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('household_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('note_id')->nullable()->constrained('notes')->cascadeOnDelete();
             $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
-            $table->boolean('is_shared')->default(false);
             $table->string('title');
             $table->text('description')->nullable();
             $table->dateTime('remind_at');
+            $table->string('recurrence')->default('none');
+            $table->dateTime('next_run_at')->nullable();
             $table->boolean('is_done')->default(false);
+            $table->boolean('is_shared')->default(false);
             $table->timestamps();
+
+            $table->index('next_run_at');
+            $table->index(['is_done', 'next_run_at']);
         });
     }
 

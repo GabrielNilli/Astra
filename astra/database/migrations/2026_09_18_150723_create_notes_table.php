@@ -13,11 +13,13 @@ return new class extends Migration
     {
         Schema::create('notes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('household_id')->constrained()->cascadeOnDelete();
             $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
-            $table->boolean('is_shared')->default(false);
             $table->string('title')->nullable();
             $table->text('content');
+            $table->string('color')->nullable();
+            $table->string('icon')->nullable();
+            $table->boolean('is_shared')->default(false);
+            $table->boolean('has_reminder')->default(false);
             $table->timestamps();
         });
     }

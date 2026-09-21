@@ -9,13 +9,10 @@ class NoteController extends Controller
 {
     public function index(Request $request)
     {
-        $household = $request->user()->households()->firstOrFail();
+        $userId = $request->user()->id;
 
-        return Note::where('household_id', $household->id)
-            ->where(function ($query) use ($request) {
-                $query->where('is_shared', true)
-                    ->orWhere('created_by', $request->user()->id);
-            })
+        return Note::where('created_by', $userId)
+            ->orWhereHas('shares', fn ($query) => $query->where('user_id', $userId))
             ->latest()
             ->get();
     }
@@ -25,19 +22,27 @@ class NoteController extends Controller
         $request->validate([
             'title' => 'nullable|string|max:255',
             'content' => 'required|string',
+            'color' => 'nullable|string|max:32',
+            'icon' => 'nullable|string|max:64',
             'is_shared' => 'sometimes|boolean',
+            'shared_with' => 'sometimes|array',
+            'shared_with.*' => 'integer|exists:users,id',
         ]);
 
-        $household = $request->user()->households()->firstOrFail();
-
-        $note = $household->notes()->create([
+        $note = Note::create([
+            'created_by' => $request->user()->id,
             'title' => $request->title,
             'content' => $request->content,
-            'created_by' => $request->user()->id,
+            'color' => $request->color,
+            'icon' => $request->icon,
             'is_shared' => $request->boolean('is_shared'),
         ]);
 
-        return response()->json($note, 201);
+        if ($request->boolean('is_shared') && $request->filled('shared_with')) {
+            $note->sharedWithUsers()->sync($request->input('shared_with'));
+        }
+
+        return response()->json($note->load('sharedWithUsers'), 201);
     }
 
     public function update(Request $request, Note $note)
@@ -47,12 +52,20 @@ class NoteController extends Controller
         $request->validate([
             'title' => 'nullable|string|max:255',
             'content' => 'required|string',
+            'color' => 'nullable|string|max:32',
+            'icon' => 'nullable|string|max:64',
             'is_shared' => 'sometimes|boolean',
+            'shared_with' => 'sometimes|array',
+            'shared_with.*' => 'integer|exists:users,id',
         ]);
 
-        $note->update($request->only('title', 'content', 'is_shared'));
+        $note->update($request->only('title', 'content', 'color', 'icon', 'is_shared'));
 
-        return $note;
+        if ($request->has('shared_with')) {
+            $note->sharedWithUsers()->sync($request->input('shared_with', []));
+        }
+
+        return $note->load('sharedWithUsers');
     }
 
     public function destroy(Request $request, Note $note)
@@ -64,13 +77,13 @@ class NoteController extends Controller
         return response()->noContent();
     }
 
-    private function authorizeAccess(Request $request, $model)
+    private function authorizeAccess(Request $request, Note $note): void
     {
-        $household = $request->user()->households()->firstOrFail();
+        $userId = $request->user()->id;
 
-        $sameHousehold = $model->household_id === $household->id;
-        $canTouch = $model->is_shared || $model->created_by === $request->user()->id;
+        $canTouch = $note->created_by === $userId
+            || $note->shares()->where('user_id', $userId)->exists();
 
-        abort_unless($sameHousehold && $canTouch, 403);
+        abort_unless($canTouch, 403);
     }
 }

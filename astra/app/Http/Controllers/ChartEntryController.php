@@ -9,13 +9,10 @@ class ChartEntryController extends Controller
 {
     public function index(Request $request)
     {
-        $household = $request->user()->households()->firstOrFail();
+        $userId = $request->user()->id;
 
-        return ChartEntry::where('household_id', $household->id)
-            ->where(function ($query) use ($request) {
-                $query->where('is_shared', true)
-                    ->orWhere('created_by', $request->user()->id);
-            })
+        return ChartEntry::where('created_by', $userId)
+            ->orWhereHas('shares', fn ($query) => $query->where('user_id', $userId))
             ->orderBy('recorded_on')
             ->get();
     }
@@ -27,29 +24,33 @@ class ChartEntryController extends Controller
             'value' => 'required|numeric',
             'recorded_on' => 'required|date',
             'is_shared' => 'sometimes|boolean',
+            'shared_with' => 'sometimes|array',
+            'shared_with.*' => 'integer|exists:users,id',
         ]);
 
-        $household = $request->user()->households()->firstOrFail();
-
-        $entry = $household->chartEntries()->create([
+        $entry = ChartEntry::create([
+            'created_by' => $request->user()->id,
             'category' => $request->category,
             'value' => $request->value,
             'recorded_on' => $request->recorded_on,
-            'created_by' => $request->user()->id,
             'is_shared' => $request->boolean('is_shared'),
         ]);
 
-        return response()->json($entry, 201);
+        if ($request->boolean('is_shared') && $request->filled('shared_with')) {
+            $entry->sharedWithUsers()->sync($request->input('shared_with'));
+        }
+
+        return response()->json($entry->load('sharedWithUsers'), 201);
     }
 
     public function destroy(Request $request, ChartEntry $chartEntry)
     {
-        $household = $request->user()->households()->firstOrFail();
+        $userId = $request->user()->id;
 
-        $sameHousehold = $chartEntry->household_id === $household->id;
-        $canTouch = $chartEntry->is_shared || $chartEntry->created_by === $request->user()->id;
+        $canTouch = $chartEntry->created_by === $userId
+            || $chartEntry->shares()->where('user_id', $userId)->exists();
 
-        abort_unless($sameHousehold && $canTouch, 403);
+        abort_unless($canTouch, 403);
 
         $chartEntry->delete();
 
