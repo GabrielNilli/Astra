@@ -28,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
             return config('app.frontend_url')."/password-reset/$token?email={$notifiable->getEmailForPasswordReset()}";
         });
 
-        Relation::enforceMorphMap([
+        Relation::morphMap([
             'note' => Note::class,
             'reminder' => Reminder::class,
             'chart_entry' => ChartEntry::class,
