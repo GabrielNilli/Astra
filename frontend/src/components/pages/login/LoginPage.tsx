@@ -3,19 +3,20 @@
 // =================================
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ApiError } from "../api/client";
-import { useAuth } from "../context/AuthContext";
+import { ApiError } from "../../../api/client";
+import { useAuth } from "../../../context/AuthContext";
 
 // =================================
 //  COMPONENT
 // =================================
-export function RegisterPage() {
-  const { register } = useAuth();
+export function LoginPage() {
+  // =================================
+  //  CONSTS
+  // =================================
+  const { login } = useAuth();
   const navigate = useNavigate();
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -28,22 +29,14 @@ export function RegisterPage() {
     setSubmitting(true);
 
     try {
-      await register({
-        name,
-        email,
-        password,
-        password_confirmation: passwordConfirmation,
-      });
+      await login({ email, password });
       navigate("/");
     } catch (err) {
-      if (err instanceof ApiError) {
-        const fieldMessages = err.fieldErrors
-          ? Object.values(err.fieldErrors).flat()
-          : [];
-        setError(fieldMessages[0] ?? err.message);
-      } else {
-        setError("Impossibile completare la registrazione.");
-      }
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "Impossibile effettuare il login.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -60,10 +53,10 @@ export function RegisterPage() {
       >
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">
-            Crea il tuo account
+            Accedi ad Astra
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Iniziamo a costruire il tuo spazio su Astra.
+            Inserisci le tue credenziali per continuare.
           </p>
         </div>
 
@@ -72,21 +65,6 @@ export function RegisterPage() {
             {error}
           </p>
         )}
-
-        <div className="space-y-1">
-          <label htmlFor="name" className="text-sm font-medium text-slate-700">
-            Nome
-          </label>
-          <input
-            id="name"
-            type="text"
-            required
-            autoComplete="name"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-          />
-        </div>
 
         <div className="space-y-1">
           <label htmlFor="email" className="text-sm font-medium text-slate-700">
@@ -114,29 +92,9 @@ export function RegisterPage() {
             id="password"
             type="password"
             required
-            minLength={8}
-            autoComplete="new-password"
+            autoComplete="current-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-          />
-        </div>
-
-        <div className="space-y-1">
-          <label
-            htmlFor="password_confirmation"
-            className="text-sm font-medium text-slate-700"
-          >
-            Conferma password
-          </label>
-          <input
-            id="password_confirmation"
-            type="password"
-            required
-            minLength={8}
-            autoComplete="new-password"
-            value={passwordConfirmation}
-            onChange={(event) => setPasswordConfirmation(event.target.value)}
             className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
           />
         </div>
@@ -146,16 +104,16 @@ export function RegisterPage() {
           disabled={submitting}
           className="w-full rounded-md bg-purple-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-purple-700 disabled:opacity-60"
         >
-          {submitting ? "Creazione account…" : "Registrati"}
+          {submitting ? "Accesso in corso…" : "Accedi"}
         </button>
 
         <p className="text-center text-sm text-slate-500">
-          Hai già un account?{" "}
+          Non hai un account?{" "}
           <Link
-            to="/login"
+            to="/register"
             className="font-medium text-purple-600 hover:underline"
           >
-            Accedi
+            Registrati
           </Link>
         </p>
       </form>

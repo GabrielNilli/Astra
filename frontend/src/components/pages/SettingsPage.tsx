@@ -1,12 +1,12 @@
 // =================================
 //  IMPORTS
 // =================================
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 
 // =================================
 //  COMPONENT
 // =================================
-export function DashboardPage() {
+export function SettingsPage() {
   // =================================
   //  CONSTS
   // =================================
@@ -18,12 +18,6 @@ export function DashboardPage() {
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-8">
       <div className="mx-auto flex max-w-2xl items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-slate-900">
-            Ciao, {user?.name}
-          </h1>
-          <p className="text-sm text-slate-500">{user?.email}</p>
-        </div>
         <button
           type="button"
           onClick={() => void logout()}
@@ -31,10 +25,6 @@ export function DashboardPage() {
         >
           Esci
         </button>
-      </div>
-
-      <div className="mx-auto mt-8 max-w-2xl rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
-        Note in arrivo.
       </div>
     </div>
   );
