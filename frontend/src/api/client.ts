@@ -20,11 +20,13 @@ type RequestOptions = {
 
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, token } = options
+  const isFormData = body instanceof FormData
 
   const headers: Record<string, string> = {
     Accept: 'application/json',
   }
-  if (body !== undefined) {
+  if (body !== undefined && !isFormData) {
+    // Per FormData il browser imposta da solo Content-Type con il boundary multipart corretto.
     headers['Content-Type'] = 'application/json'
   }
   if (token) {
@@ -34,7 +36,7 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
   const response = await fetch(`${API_URL}${path}`, {
     method,
     headers,
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
   })
 
   const isJson = response.headers.get('content-type')?.includes('application/json') ?? false

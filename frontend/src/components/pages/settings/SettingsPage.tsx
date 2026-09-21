@@ -11,6 +11,7 @@ import {
   type ThemeMode,
 } from "../../../services/settings/settingsService";
 
+import ProfileSection from "./sections/ProfileSection";
 import ThemeSection from "./sections/ThemeSection";
 
 import Logo from "../../images/Logo.png";
@@ -53,6 +54,7 @@ export function SettingsPage() {
       </header>
       <main className="mx-auto max-w-lg px-4 py-4">
         <div className="space-y-4">
+          <ProfileSection />
           <ThemeSection
             theme={theme}
             onThemeChange={handleThemeChange}

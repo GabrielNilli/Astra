@@ -32,3 +32,9 @@ export function logout(token: string) {
 export function getCurrentUser(token: string) {
   return apiFetch<User>('/user', { token })
 }
+
+export function uploadProfilePicture(token: string, photo: File) {
+  const body = new FormData()
+  body.append('photo', photo)
+  return apiFetch<User>('/user/profile-picture', { method: 'POST', body, token })
+}

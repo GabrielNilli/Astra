@@ -1,9 +1,10 @@
 <?php
 
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\NoteController;
-use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\ChartEntryController;
+use App\Http\Controllers\NoteController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReminderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -15,6 +16,7 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/user/profile-picture', [ProfileController::class, 'updatePicture']);
 
     Route::apiResource('notes', NoteController::class)->except('show');
     Route::apiResource('reminders', ReminderController::class)->except('show');

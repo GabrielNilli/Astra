@@ -14,6 +14,7 @@ type AuthContextValue = {
   register: (payload: Parameters<typeof authApi.register>[0]) => Promise<void>
   login: (payload: Parameters<typeof authApi.login>[0]) => Promise<void>
   logout: () => Promise<void>
+  uploadProfilePicture: (photo: File) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -65,6 +66,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     persist(auth)
   }
 
+  async function uploadProfilePicture(photo: File) {
+    if (!token) {
+      throw new Error('Devi effettuare il login.')
+    }
+    const updatedUser = await authApi.uploadProfilePicture(token, photo)
+    persist({ user: updatedUser, token })
+  }
+
   async function logout() {
     if (token) {
       try {
@@ -79,7 +88,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, register, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, token, loading, register, login, logout, uploadProfilePicture }}
+    >
       {children}
     </AuthContext.Provider>
   )
