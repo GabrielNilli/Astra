@@ -1,1 +1,30 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Colore accent personalizzabile dall'utente (Impostazioni > Tema).
+     Il valore qui è solo il default: viene sovrascritto a runtime via
+     applyAccentColor(), che imposta questa CSS variable su <html>. */
+  --color-accent: #9333ea;
+
+  /* Palette neutra fissa (non personalizzabile), usata insieme a dark:
+     per sfondi, bordi e testo in tutta l'app. */
+  --color-base-light: #eeeeee;
+  --color-base-mid: #989daa;
+  --color-base-dark: #3a3f43;
+}
+
+html,
+body {
+  /* La shell dell'app (App.tsx) è fissata al viewport e gestisce lo scroll
+     internamente (vedi il contenitore overflow-y-auto in App.tsx). Bloccare
+     lo scroll qui impedisce qualunque overflow "a pelo" a livello documento,
+     qualunque ne sia la causa (rounding sub-pixel, zoom, scrollbar gutter). */
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  @apply bg-base-light text-base-dark dark:bg-base-dark dark:text-base-light;
+}

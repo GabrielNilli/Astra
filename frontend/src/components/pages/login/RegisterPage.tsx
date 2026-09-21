@@ -53,28 +53,28 @@ export function RegisterPage() {
   //  RENDER
   // =================================
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+    <div className="flex min-h-full items-center justify-center bg-base-light px-4 dark:bg-base-dark">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-sm space-y-4 rounded-xl border border-slate-200 bg-white p-8 shadow-sm"
+        className="w-full max-w-sm space-y-4 rounded-xl border border-base-mid/25 bg-white p-8 shadow-sm dark:bg-base-dark"
       >
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">
+          <h1 className="text-2xl font-semibold text-base-dark dark:text-base-light">
             Crea il tuo account
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-base-mid">
             Iniziamo a costruire il tuo spazio su Astra.
           </p>
         </div>
 
         {error && (
-          <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">
+          <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-600 dark:bg-red-950 dark:text-red-400">
             {error}
           </p>
         )}
 
         <div className="space-y-1">
-          <label htmlFor="name" className="text-sm font-medium text-slate-700">
+          <label htmlFor="name" className="text-sm font-medium text-base-mid">
             Nome
           </label>
           <input
@@ -84,12 +84,12 @@ export function RegisterPage() {
             autoComplete="name"
             value={name}
             onChange={(event) => setName(event.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+            className="w-full rounded-md border border-base-mid/40 bg-white px-3 py-2 text-sm text-base-dark focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent dark:bg-base-dark dark:text-base-light"
           />
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="email" className="text-sm font-medium text-slate-700">
+          <label htmlFor="email" className="text-sm font-medium text-base-mid">
             Email
           </label>
           <input
@@ -99,14 +99,14 @@ export function RegisterPage() {
             autoComplete="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+            className="w-full rounded-md border border-base-mid/40 bg-white px-3 py-2 text-sm text-base-dark focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent dark:bg-base-dark dark:text-base-light"
           />
         </div>
 
         <div className="space-y-1">
           <label
             htmlFor="password"
-            className="text-sm font-medium text-slate-700"
+            className="text-sm font-medium text-base-mid"
           >
             Password
           </label>
@@ -118,14 +118,14 @@ export function RegisterPage() {
             autoComplete="new-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+            className="w-full rounded-md border border-base-mid/40 bg-white px-3 py-2 text-sm text-base-dark focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent dark:bg-base-dark dark:text-base-light"
           />
         </div>
 
         <div className="space-y-1">
           <label
             htmlFor="password_confirmation"
-            className="text-sm font-medium text-slate-700"
+            className="text-sm font-medium text-base-mid"
           >
             Conferma password
           </label>
@@ -137,23 +137,23 @@ export function RegisterPage() {
             autoComplete="new-password"
             value={passwordConfirmation}
             onChange={(event) => setPasswordConfirmation(event.target.value)}
-            className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+            className="w-full rounded-md border border-base-mid/40 bg-white px-3 py-2 text-sm text-base-dark focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent dark:bg-base-dark dark:text-base-light"
           />
         </div>
 
         <button
           type="submit"
           disabled={submitting}
-          className="w-full rounded-md bg-purple-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-purple-700 disabled:opacity-60"
+          className="w-full rounded-md bg-accent px-3 py-2 text-sm font-medium text-white transition hover:brightness-90 disabled:opacity-60"
         >
           {submitting ? "Creazione account…" : "Registrati"}
         </button>
 
-        <p className="text-center text-sm text-slate-500">
+        <p className="text-center text-sm text-base-mid">
           Hai già un account?{" "}
           <Link
             to="/login"
-            className="font-medium text-purple-600 hover:underline"
+            className="font-medium text-accent hover:underline"
           >
             Accedi
           </Link>

@@ -15,7 +15,7 @@ export function ProtectedRoute() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-slate-500">
+      <div className="flex min-h-full items-center justify-center bg-base-light text-base-mid dark:bg-base-dark">
         Caricamento…
       </div>
     );

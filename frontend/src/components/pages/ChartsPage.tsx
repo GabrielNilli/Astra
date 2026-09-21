@@ -14,10 +14,10 @@ export function ChartsPage() {
   //  RENDER
   // =================================
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-8">
+    <div className="min-h-full bg-base-light px-4 py-8 dark:bg-base-dark">
       <div className="mx-auto flex max-w-2xl items-center justify-between"></div>
 
-      <div className="mx-auto mt-8 max-w-2xl rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
+      <div className="mx-auto mt-8 max-w-2xl rounded-xl border border-dashed border-base-mid/40 p-8 text-center text-base-mid">
         PAGINA GRAFICI
       </div>
     </div>
