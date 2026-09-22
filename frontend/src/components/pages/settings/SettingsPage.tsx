@@ -44,9 +44,9 @@ export function SettingsPage() {
   // =================================
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-base-mid/25 bg-white px-4 pt-6 pb-4 dark:bg-base-dark">
+      <header className="sticky top-0 z-40 border-b border-base-mid/25 bg-white px-4 pt-6 pb-4 dark:bg-base-dark lg:hidden">
         <div className="flex items-center gap-2">
-          <img src={Logo} alt="Astra" className="h-8 w-8 lg:hidden" />
+          <img src={Logo} alt="Astra" className="h-8 w-8" />
           <h1 className="font-headline text-xl font-bold tracking-tight">
             Impostazioni
           </h1>
@@ -67,7 +67,7 @@ export function SettingsPage() {
           <button
             type="button"
             onClick={() => void logout()}
-            className="rounded-md border border-base-mid/40 px-3 py-2 text-sm font-medium text-base-mid transition hover:bg-base-mid/10"
+            className="rounded-md border border-base-mid/40 px-3 py-2 text-sm font-medium text-base-mid transition hover:bg-base-mid/10 cursor-pointer"
           >
             Esci
           </button>

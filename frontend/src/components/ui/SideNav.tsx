@@ -26,7 +26,7 @@ export default function SideNav() {
   return (
     <nav className="hidden w-56 shrink-0 overflow-y-auto border-r border-base-mid/25 bg-white px-3 py-6 dark:bg-base-dark lg:flex lg:flex-col">
       <div className="mb-8 flex items-center gap-2 px-2 text-base-dark dark:text-base-light">
-        <img src={Logo} alt="ScanDex" className="w-24" />
+        <img src={Logo} alt="Astra" className="w-24" />
         <span className="font-headline text-lg font-bold tracking-tight">
           Astra
         </span>
