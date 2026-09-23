@@ -16,12 +16,12 @@ class ProfileController extends Controller
         $user = $request->user();
         $previousPath = $user->getRawOriginal('profile_pic');
 
-        $path = $request->file('photo')->store('avatars', 'public');
+        $path = $request->file('photo')->store('avatars', config('filesystems.avatars_disk'));
 
         $user->update(['profile_pic' => $path]);
 
         if ($previousPath) {
-            Storage::disk('public')->delete($previousPath);
+            Storage::disk(config('filesystems.avatars_disk'))->delete($previousPath);
         }
 
         return response()->json($user);

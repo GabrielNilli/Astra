@@ -4,6 +4,7 @@
 import { Laptop, Moon, Sun } from "lucide-react";
 import type { ThemeMode } from "../../../../services/settings/settingsService";
 import { COLOR_PRESETS } from "../../../../constants/colors";
+import { ColorPicker } from "../../../ui/ColorPicker";
 
 // =================================
 //  CONSTS
@@ -53,35 +54,12 @@ export default function ThemeSection({
       </div>
 
       <h3 className="mt-5 mb-3 text-sm font-semibold">Colore</h3>
-      <div className="flex flex-wrap items-center gap-2.5">
-        {COLOR_PRESETS.map((color) => (
-          <button
-            key={color}
-            type="button"
-            onClick={() => onAccentChange(color)}
-            aria-label={`Usa ${color} come colore`}
-            className={`h-8 w-8 rounded-full border-2 transition-transform ${
-              accentColor.toLowerCase() === color.toLowerCase()
-                ? "border-base-dark scale-110 dark:border-base-light"
-                : "border-transparent hover:scale-105 cursor-pointer"
-            }`}
-            style={{ backgroundColor: color }}
-          />
-        ))}
-
-        <label
-          title="Colore personalizzato"
-          className="relative flex h-8 w-8 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-base-mid/40 text-sm leading-none text-base-mid"
-        >
-          +
-          <input
-            type="color"
-            value={accentColor}
-            onChange={(event) => onAccentChange(event.target.value)}
-            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-          />
-        </label>
-      </div>
+      <ColorPicker
+        value={accentColor}
+        onChange={onAccentChange}
+        presets={COLOR_PRESETS}
+        swatchClassName="h-8 w-8"
+      />
     </section>
   );
 }

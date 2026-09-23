@@ -1,12 +1,27 @@
 import { apiFetch } from "./client";
+import type { ReminderRecurrence } from "./reminders";
+import type { UserSummary } from "./users";
 
 // =================================
 //  TYPES
 // =================================
+export type NoteReminder = {
+  id: number;
+  note_id: number;
+  remind_at: string;
+  recurrence: ReminderRecurrence;
+  is_done: boolean;
+};
+
+export type NoteImage = {
+  id: number;
+  note_id: number;
+  url: string;
+};
+
 export type Note = {
   id: number;
   created_by: number;
-  section_id: number | null;
   title: string | null;
   content: string;
   color: string | null;
@@ -15,6 +30,17 @@ export type Note = {
   has_reminder: boolean;
   created_at: string;
   updated_at: string;
+  sections: { id: number; name: string }[];
+  author: UserSummary;
+  shared_with_users: UserSummary[];
+  reminders: NoteReminder[];
+  images: NoteImage[];
+};
+
+// Promemoria da creare insieme alla nota (non fa parte del payload dell'API note)
+export type NoteReminderInput = {
+  remind_at: string;
+  recurrence: ReminderRecurrence;
 };
 
 export type NotePayload = {
@@ -22,7 +48,7 @@ export type NotePayload = {
   content: string;
   color?: string;
   icon?: string;
-  section_id?: number | null;
+  section_ids?: number[];
   is_shared?: boolean;
   shared_with?: number[];
 };
@@ -49,4 +75,18 @@ export function updateNote(token: string, id: number, payload: NotePayload) {
 
 export function deleteNote(token: string, id: number) {
   return apiFetch<null>(`/notes/${id}`, { method: "DELETE", token });
+}
+
+export function uploadNoteImages(token: string, noteId: number, files: File[]) {
+  const body = new FormData();
+  files.forEach((file) => body.append("images[]", file));
+  return apiFetch<NoteImage[]>(`/notes/${noteId}/images`, {
+    method: "POST",
+    body,
+    token,
+  });
+}
+
+export function deleteNoteImage(token: string, imageId: number) {
+  return apiFetch<null>(`/note-images/${imageId}`, { method: "DELETE", token });
 }

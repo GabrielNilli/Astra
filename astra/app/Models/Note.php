@@ -12,7 +12,6 @@ class Note extends Model
 
     protected $fillable = [
         'created_by',
-        'section_id',
         'title',
         'content',
         'color',
@@ -26,6 +25,22 @@ class Note extends Model
         'has_reminder' => 'boolean',
     ];
 
+    protected static function booted(): void
+    {
+        // Le righe note_images spariscono in cascata dal DB, i file vanno tolti dal disco a mano
+        static::deleting(function (self $note) {
+            $paths = $note->images()->pluck('path')->all();
+            if ($paths) {
+                NoteImage::disk()->delete($paths);
+            }
+        });
+    }
+
+    public function images()
+    {
+        return $this->hasMany(NoteImage::class);
+    }
+
     public function author()
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -36,8 +51,8 @@ class Note extends Model
         return $this->hasMany(Reminder::class);
     }
 
-    public function section()
+    public function sections()
     {
-        return $this->belongsTo(Section::class);
+        return $this->belongsToMany(Section::class, 'note_section')->withTimestamps();
     }
 }

@@ -35,12 +35,12 @@ class User extends Authenticatable
 
     /**
      * Espone l'URL pubblico completo dell'avatar; in DB è salvato solo il
-     * path relativo sul disco "public" (vedi ProfileController).
+     * path relativo sul disco avatars_disk (vedi ProfileController).
      */
     protected function profilePic(): Attribute
     {
         return Attribute::make(
-            get: fn (?string $value) => $value ? Storage::disk('public')->url($value) : null,
+            get: fn (?string $value) => $value ? Storage::disk(config('filesystems.avatars_disk'))->url($value) : null,
         );
     }
 

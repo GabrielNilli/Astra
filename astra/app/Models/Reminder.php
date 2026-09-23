@@ -34,7 +34,8 @@ class Reminder extends Model
     protected static function booted(): void
     {
         static::saving(function (self $reminder) {
-            if (! $reminder->next_run_at) {
+            // Se la data del promemoria viene cambiata, la prossima esecuzione la segue
+            if (! $reminder->next_run_at || $reminder->isDirty('remind_at')) {
                 $reminder->next_run_at = $reminder->remind_at;
             }
         });

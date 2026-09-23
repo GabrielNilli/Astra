@@ -56,7 +56,7 @@ export function NoteActionsBar({
     <div className="mb-4 space-y-2">
       {/* Riga sezioni: scorre orizzontalmente, il "+" resta fisso a destra e copre le chip che gli scorrono sotto */}
       <div className="relative">
-        <div className="flex items-center gap-1.5 overflow-x-auto py-1 pr-10">
+        <div className="flex items-center gap-1.5 overflow-x-auto py-1 pr-10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <button
             type="button"
             onClick={() => onSectionChange(null)}
@@ -116,14 +116,16 @@ export function NoteActionsBar({
         </div>
 
         {!isAddingSection && (
-          <button
-            type="button"
-            onClick={() => setIsAddingSection(true)}
-            aria-label="Aggiungi sezione"
-            className="absolute top-1/2 right-0 flex h-6 w-6 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border border-dashed border-base-mid/40 bg-base-light text-base-mid hover:bg-base-mid/10 dark:bg-base-dark"
-          >
-            <Plus size={14} />
-          </button>
+          <div className="absolute inset-y-0 right-0 flex w-10 items-center justify-end bg-base-light dark:bg-base-dark">
+            <button
+              type="button"
+              onClick={() => setIsAddingSection(true)}
+              aria-label="Aggiungi sezione"
+              className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border border-dashed border-base-mid/40 text-base-mid hover:bg-base-mid/10"
+            >
+              <Plus size={14} />
+            </button>
+          </div>
         )}
       </div>
 

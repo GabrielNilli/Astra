@@ -7,6 +7,15 @@ use Illuminate\Http\Request;
 
 class NoteController extends Controller
 {
+    /** Relazioni restituite con ogni nota, così la UI mostra tutto senza altre chiamate. */
+    private const RELATIONS = [
+        'sections:id,name',
+        'author:id,name,profile_pic',
+        'sharedWithUsers:id,name,profile_pic',
+        'reminders:id,note_id,remind_at,recurrence,is_done',
+        'images:id,note_id,path',
+    ];
+
     public function index(Request $request)
     {
         $userId = $request->user()->id;
@@ -15,7 +24,8 @@ class NoteController extends Controller
             $query->where('created_by', $userId)
                 ->orWhereHas('shares', fn ($shares) => $shares->where('user_id', $userId));
         })
-            ->when($request->filled('section_id'), fn ($query) => $query->where('section_id', $request->integer('section_id')))
+            ->with(self::RELATIONS)
+            ->when($request->filled('section_id'), fn ($query) => $query->whereHas('sections', fn ($sections) => $sections->whereKey($request->integer('section_id'))))
             ->latest()
             ->get();
     }
@@ -27,7 +37,8 @@ class NoteController extends Controller
             'content' => 'required|string',
             'color' => 'nullable|string|max:32',
             'icon' => 'nullable|string|max:64',
-            'section_id' => 'nullable|integer|exists:sections,id',
+            'section_ids' => 'sometimes|array',
+            'section_ids.*' => 'integer|exists:sections,id',
             'is_shared' => 'sometimes|boolean',
             'shared_with' => 'sometimes|array',
             'shared_with.*' => 'integer|exists:users,id',
@@ -35,7 +46,6 @@ class NoteController extends Controller
 
         $note = Note::create([
             'created_by' => $request->user()->id,
-            'section_id' => $request->section_id,
             'title' => $request->title,
             'content' => $request->content,
             'color' => $request->color,
@@ -43,11 +53,15 @@ class NoteController extends Controller
             'is_shared' => $request->boolean('is_shared'),
         ]);
 
+        if ($request->filled('section_ids')) {
+            $note->sections()->sync($request->input('section_ids'));
+        }
+
         if ($request->boolean('is_shared') && $request->filled('shared_with')) {
             $note->sharedWithUsers()->sync($request->input('shared_with'));
         }
 
-        return response()->json($note->load('sharedWithUsers'), 201);
+        return response()->json($note->load(self::RELATIONS), 201);
     }
 
     public function update(Request $request, Note $note)
@@ -59,19 +73,24 @@ class NoteController extends Controller
             'content' => 'required|string',
             'color' => 'nullable|string|max:32',
             'icon' => 'nullable|string|max:64',
-            'section_id' => 'nullable|integer|exists:sections,id',
+            'section_ids' => 'sometimes|array',
+            'section_ids.*' => 'integer|exists:sections,id',
             'is_shared' => 'sometimes|boolean',
             'shared_with' => 'sometimes|array',
             'shared_with.*' => 'integer|exists:users,id',
         ]);
 
-        $note->update($request->only('title', 'content', 'color', 'icon', 'section_id', 'is_shared'));
+        $note->update($request->only('title', 'content', 'color', 'icon', 'is_shared'));
+
+        if ($request->has('section_ids')) {
+            $note->sections()->sync($request->input('section_ids', []));
+        }
 
         if ($request->has('shared_with')) {
             $note->sharedWithUsers()->sync($request->input('shared_with', []));
         }
 
-        return $note->load('sharedWithUsers');
+        return $note->load(self::RELATIONS);
     }
 
     public function destroy(Request $request, Note $note)

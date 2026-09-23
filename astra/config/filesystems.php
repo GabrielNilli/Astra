@@ -28,6 +28,16 @@ return [
     |
     */
 
+    /*
+    | Disco su cui vengono salvate le immagini delle note: "public" in locale,
+    | "s3" (Supabase Storage tramite endpoint S3) in produzione.
+    */
+
+    'note_images_disk' => env('NOTE_IMAGES_DISK', 'public'),
+
+    // Stesso principio per le foto profilo: "s3_avatars" punta a un bucket dedicato
+    'avatars_disk' => env('AVATARS_DISK', 'public'),
+
     'disks' => [
 
         'local' => [
@@ -56,7 +66,27 @@ return [
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
             'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
-            'throw' => false,
+            // Percorso di un bundle CA (solo se PHP non ne ha uno, es. Windows); true = default di sistema
+            'http' => ['verify' => env('AWS_CA_BUNDLE') ?: true],
+            // Con false un upload fallito viene ignorato in silenzio
+            'throw' => true,
+            'report' => false,
+        ],
+
+        // Bucket dedicato alle foto profilo (stesse credenziali S3 del disco "s3")
+        's3_avatars' => [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION'),
+            'bucket' => env('AVATARS_BUCKET'),
+            'url' => env('AVATARS_URL'),
+            'endpoint' => env('AWS_ENDPOINT'),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            // Percorso di un bundle CA (solo se PHP non ne ha uno, es. Windows); true = default di sistema
+            'http' => ['verify' => env('AWS_CA_BUNDLE') ?: true],
+            // Con false un upload fallito viene ignorato in silenzio
+            'throw' => true,
             'report' => false,
         ],
 
