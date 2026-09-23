@@ -11,8 +11,11 @@ class NoteController extends Controller
     {
         $userId = $request->user()->id;
 
-        return Note::where('created_by', $userId)
-            ->orWhereHas('shares', fn ($query) => $query->where('user_id', $userId))
+        return Note::where(function ($query) use ($userId) {
+            $query->where('created_by', $userId)
+                ->orWhereHas('shares', fn ($shares) => $shares->where('user_id', $userId));
+        })
+            ->when($request->filled('section_id'), fn ($query) => $query->where('section_id', $request->integer('section_id')))
             ->latest()
             ->get();
     }
@@ -24,6 +27,7 @@ class NoteController extends Controller
             'content' => 'required|string',
             'color' => 'nullable|string|max:32',
             'icon' => 'nullable|string|max:64',
+            'section_id' => 'nullable|integer|exists:sections,id',
             'is_shared' => 'sometimes|boolean',
             'shared_with' => 'sometimes|array',
             'shared_with.*' => 'integer|exists:users,id',
@@ -31,6 +35,7 @@ class NoteController extends Controller
 
         $note = Note::create([
             'created_by' => $request->user()->id,
+            'section_id' => $request->section_id,
             'title' => $request->title,
             'content' => $request->content,
             'color' => $request->color,
@@ -54,12 +59,13 @@ class NoteController extends Controller
             'content' => 'required|string',
             'color' => 'nullable|string|max:32',
             'icon' => 'nullable|string|max:64',
+            'section_id' => 'nullable|integer|exists:sections,id',
             'is_shared' => 'sometimes|boolean',
             'shared_with' => 'sometimes|array',
             'shared_with.*' => 'integer|exists:users,id',
         ]);
 
-        $note->update($request->only('title', 'content', 'color', 'icon', 'is_shared'));
+        $note->update($request->only('title', 'content', 'color', 'icon', 'section_id', 'is_shared'));
 
         if ($request->has('shared_with')) {
             $note->sharedWithUsers()->sync($request->input('shared_with', []));

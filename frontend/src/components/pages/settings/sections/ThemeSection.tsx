@@ -3,6 +3,7 @@
 // =================================
 import { Laptop, Moon, Sun } from "lucide-react";
 import type { ThemeMode } from "../../../../services/settings/settingsService";
+import { COLOR_PRESETS } from "../../../../constants/colors";
 
 // =================================
 //  CONSTS
@@ -11,15 +12,6 @@ const THEME_OPTIONS: { value: ThemeMode; label: string; icon: typeof Sun }[] = [
   { value: "light", label: "Chiaro", icon: Sun },
   { value: "dark", label: "Scuro", icon: Moon },
   { value: "system", label: "Sistema", icon: Laptop },
-];
-
-const ACCENT_PRESETS = [
-  "#9333ea", // violetto
-  "#dc5f00", // arancione
-  "#2563eb", // blu
-  "#16a34a", // verde
-  "#e11d48", // rosso
-  "#f59e0b", // ambra
 ];
 
 // =================================
@@ -62,7 +54,7 @@ export default function ThemeSection({
 
       <h3 className="mt-5 mb-3 text-sm font-semibold">Colore</h3>
       <div className="flex flex-wrap items-center gap-2.5">
-        {ACCENT_PRESETS.map((color) => (
+        {COLOR_PRESETS.map((color) => (
           <button
             key={color}
             type="button"

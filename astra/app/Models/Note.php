@@ -12,6 +12,7 @@ class Note extends Model
 
     protected $fillable = [
         'created_by',
+        'section_id',
         'title',
         'content',
         'color',
@@ -33,5 +34,10 @@ class Note extends Model
     public function reminders()
     {
         return $this->hasMany(Reminder::class);
+    }
+
+    public function section()
+    {
+        return $this->belongsTo(Section::class);
     }
 }

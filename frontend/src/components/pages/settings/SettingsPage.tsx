@@ -14,7 +14,8 @@ import {
 import ProfileSection from "./sections/ProfileSection";
 import ThemeSection from "./sections/ThemeSection";
 
-import Logo from "../../images/Logo.png";
+import GenericButton from "../../ui/GenericButton";
+import { GenericHeader } from "../../ui/GenericHeader";
 
 // =================================
 //  COMPONENT
@@ -44,14 +45,7 @@ export function SettingsPage() {
   // =================================
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-base-mid/25 bg-white px-4 pt-6 pb-4 dark:bg-base-dark lg:hidden">
-        <div className="flex items-center gap-2">
-          <img src={Logo} alt="Astra" className="h-8 w-8" />
-          <h1 className="font-headline text-xl font-bold tracking-tight">
-            Impostazioni
-          </h1>
-        </div>
-      </header>
+      <GenericHeader headerTitle="Impostazioni" />
       <main className="mx-auto max-w-lg px-4 py-4">
         <div className="space-y-4">
           <ProfileSection />
@@ -64,13 +58,9 @@ export function SettingsPage() {
         </div>
 
         <div className="mt-6">
-          <button
-            type="button"
-            onClick={() => void logout()}
-            className="rounded-md border border-base-mid/40 px-3 py-2 text-sm font-medium text-base-mid transition hover:bg-base-mid/10 cursor-pointer"
-          >
-            Esci
-          </button>
+          <GenericButton variant="destructive" onClick={() => void logout()}>
+            Log Out
+          </GenericButton>
         </div>
       </main>
     </>
