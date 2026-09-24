@@ -2,7 +2,7 @@
 //  IMPORTS
 // =================================
 import { useState } from "react";
-import { List, LayoutGrid, Plus, Check } from "lucide-react";
+import { List, LayoutGrid, Plus, Check, CheckSquare, X } from "lucide-react";
 import {
   DndContext,
   MouseSensor,
@@ -74,6 +74,8 @@ export function NoteActionsBar({
   viewMode,
   onViewModeChange,
   onRefresh,
+  selectionMode,
+  onToggleSelectionMode,
 }: {
   sections: Section[];
   activeSectionId: number | null;
@@ -83,6 +85,8 @@ export function NoteActionsBar({
   viewMode: NoteViewMode;
   onViewModeChange: (mode: NoteViewMode) => void;
   onRefresh: () => void;
+  selectionMode: boolean;
+  onToggleSelectionMode: () => void;
 }) {
   // =================================
   //  CONSTS
@@ -234,7 +238,23 @@ export function NoteActionsBar({
           </button>
         </div>
 
-        <NoteRefreshButton handleNoteRefresh={onRefresh} />
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onToggleSelectionMode}
+            aria-pressed={selectionMode}
+            className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${
+              selectionMode
+                ? "border-accent bg-accent/10 text-accent"
+                : "border-base-mid/25 text-base-mid hover:bg-base-mid/10"
+            }`}
+          >
+            {selectionMode ? <X size={14} /> : <CheckSquare size={14} />}
+            {selectionMode ? "Annulla" : "Seleziona"}
+          </button>
+
+          <NoteRefreshButton handleNoteRefresh={onRefresh} />
+        </div>
       </div>
     </div>
   );

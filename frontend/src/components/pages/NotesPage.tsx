@@ -26,6 +26,7 @@ import { NoteEmptyState } from "../ui/notes/NoteEmptyState";
 import { NoteActionsBar, type NoteViewMode } from "../ui/notes/NoteActionsBar";
 import { NoteFormModal, type NoteFormValues } from "../ui/notes/NoteFormModal";
 import { NoteFab } from "../ui/notes/NoteFab";
+import { NoteBulkActionsBar } from "../ui/notes/NoteBulkActionsBar";
 import { GenericHeader } from "../ui/GenericHeader";
 import { NoteCard } from "../ui/notes/NoteCard";
 
@@ -67,6 +68,10 @@ function SortableSectionGroup({
   onChecklistToggle,
   onPinToggle,
   onReminderToggle,
+  selectionMode,
+  selectedIds,
+  onToggleSelect,
+  onLongPressSelect,
 }: {
   section: Section | null;
   notes: Note[];
@@ -81,6 +86,10 @@ function SortableSectionGroup({
   onChecklistToggle: (id: number, itemIndex: number) => void;
   onPinToggle: (id: number, pinned: boolean) => void;
   onReminderToggle: (reminderId: number, done: boolean) => void;
+  selectionMode: boolean;
+  selectedIds: Set<number>;
+  onToggleSelect: (id: number) => void;
+  onLongPressSelect: (id: number) => void;
 }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
     useSortable({ id: section?.id ?? "none", disabled: section === null });
@@ -137,6 +146,10 @@ function SortableSectionGroup({
               onChecklistToggle={onChecklistToggle}
               onPinToggle={onPinToggle}
               onReminderToggle={onReminderToggle}
+              selectionMode={selectionMode}
+              isSelected={selectedIds.has(note.id)}
+              onToggleSelect={onToggleSelect}
+              onLongPressSelect={onLongPressSelect}
             />
           </div>
         ))}
@@ -159,6 +172,8 @@ export function NotesPage() {
   const [viewMode, setViewMode] = useState<NoteViewMode>("grid");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   // Stessa soglia della barra pillole: un tap sull'intestazione resta un tap,
   // il drag scatta solo spostando il puntatore di qualche pixel.
   const groupDragSensors = useSensors(
@@ -253,6 +268,77 @@ export function NotesPage() {
       content: note.content,
       is_pinned: pinned,
     }).then(handleNoteRefresh);
+  }
+
+  function toggleSelectionMode() {
+    setSelectionMode((prev) => !prev);
+    setSelectedIds(new Set());
+  }
+
+  function handleToggleSelect(id: number) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  function handleLongPressSelect(id: number) {
+    if (!selectionMode) {
+      setSelectionMode(true);
+      setSelectedIds(new Set([id]));
+    } else {
+      handleToggleSelect(id);
+    }
+  }
+
+  function handleBulkDelete() {
+    if (!token || selectedIds.size === 0) return;
+    if (!window.confirm(`Eliminare ${selectedIds.size} note selezionate?`)) return;
+
+    Promise.all([...selectedIds].map((id) => deleteNote(token, id))).then(() => {
+      setSelectionMode(false);
+      setSelectedIds(new Set());
+      handleNoteRefresh();
+    });
+  }
+
+  function handleBulkPin(pinned: boolean) {
+    if (!token || selectedIds.size === 0) return;
+
+    Promise.all(
+      [...selectedIds].map((id) => {
+        const note = notesList.find((n) => n.id === id);
+        if (!note) return Promise.resolve();
+        return updateNote(token, id, {
+          title: note.title ?? undefined,
+          content: note.content,
+          is_pinned: pinned,
+        });
+      }),
+    ).then(handleNoteRefresh);
+  }
+
+  function handleBulkAddSection(sectionId: number) {
+    if (!token || selectedIds.size === 0) return;
+
+    Promise.all(
+      [...selectedIds].map((id) => {
+        const note = notesList.find((n) => n.id === id);
+        if (!note) return Promise.resolve();
+        const sectionIds = new Set(note.sections.map((section) => section.id));
+        sectionIds.add(sectionId);
+        return updateNote(token, id, {
+          title: note.title ?? undefined,
+          content: note.content,
+          section_ids: [...sectionIds],
+        });
+      }),
+    ).then(handleNoteRefresh);
   }
 
   function handleReminderToggle(reminderId: number, done: boolean) {
@@ -417,6 +503,8 @@ export function NotesPage() {
           viewMode={viewMode}
           onViewModeChange={setViewMode}
           onRefresh={handleNoteRefresh}
+          selectionMode={selectionMode}
+          onToggleSelectionMode={toggleSelectionMode}
         />
 
         {isLoading === true ? (
@@ -447,6 +535,10 @@ export function NotesPage() {
                   onChecklistToggle={handleNoteChecklistToggle}
                   onPinToggle={handleNotePinToggle}
                   onReminderToggle={handleReminderToggle}
+                  selectionMode={selectionMode}
+                  selectedIds={selectedIds}
+                  onToggleSelect={handleToggleSelect}
+                  onLongPressSelect={handleLongPressSelect}
                 />
               ))}
             </SortableContext>
@@ -454,7 +546,19 @@ export function NotesPage() {
         )}
       </main>
 
-      <NoteFab onClick={() => setShowCreateForm(true)} />
+      {selectionMode ? (
+        <NoteBulkActionsBar
+          selectedCount={selectedIds.size}
+          sections={sections}
+          onPin={() => handleBulkPin(true)}
+          onUnpin={() => handleBulkPin(false)}
+          onAddSection={handleBulkAddSection}
+          onDelete={handleBulkDelete}
+          onCancel={toggleSelectionMode}
+        />
+      ) : (
+        <NoteFab onClick={() => setShowCreateForm(true)} />
+      )}
 
       {showCreateForm && (
         <NoteFormModal

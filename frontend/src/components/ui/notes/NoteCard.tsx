@@ -98,6 +98,10 @@ export function NoteCard({
   onChecklistToggle,
   onPinToggle,
   onReminderToggle,
+  selectionMode,
+  isSelected,
+  onToggleSelect,
+  onLongPressSelect,
 }: {
   note: Note;
   sections: Section[];
@@ -109,6 +113,10 @@ export function NoteCard({
   onChecklistToggle: (id: number, itemIndex: number) => void;
   onPinToggle: (id: number, pinned: boolean) => void;
   onReminderToggle: (reminderId: number, done: boolean) => void;
+  selectionMode: boolean;
+  isSelected: boolean;
+  onToggleSelect: (id: number) => void;
+  onLongPressSelect: (id: number) => void;
 }) {
   // =================================
   //  CONSTS
@@ -192,12 +200,13 @@ export function NoteCard({
   }
 
   function handleEdit() {
+    if (selectionMode) return;
     closeMenu();
     onEdit(note);
   }
 
   const tapGestures = useTapGestures({
-    onLongPress: () => openMenu(),
+    onLongPress: () => onLongPressSelect(note.id),
     onDoubleTap: handleEdit,
   });
 
@@ -234,10 +243,15 @@ export function NoteCard({
   // =================================
   return (
     <div
-      className="rounded-2xl border border-t-4 border-black/5 shadow-sm transition-shadow select-none hover:shadow-md dark:border-white/15"
+      className={`rounded-2xl border border-t-4 border-black/5 shadow-sm transition-shadow select-none hover:shadow-md dark:border-white/15 ${
+        isSelected ? "ring-2 ring-accent" : ""
+      }`}
       style={{ borderTopColor: color }}
-      onContextMenu={openMenu}
+      onContextMenu={selectionMode ? undefined : openMenu}
       onDoubleClick={handleEdit}
+      onClick={() => {
+        if (selectionMode) onToggleSelect(note.id);
+      }}
       {...tapGestures}
     >
       <div className={`relative rounded-t-2xl px-4 pt-3.5 pb-1 ${CARD_SURFACE}`}>
@@ -274,27 +288,42 @@ export function NoteCard({
           </h3>
         </div>
 
-        <button
-          type="button"
-          onClick={() => onPinToggle(note.id, !note.is_pinned)}
-          aria-label={note.is_pinned ? "Rimuovi dai fissati" : "Fissa in alto"}
-          className="absolute top-2 right-9 cursor-pointer rounded-full p-1 text-base-mid hover:bg-base-mid/10"
-        >
-          <Bookmark
-            size={18}
-            className={note.is_pinned ? "fill-base-mid" : ""}
-          />
-        </button>
+        {selectionMode ? (
+          <div
+            aria-hidden="true"
+            className={`absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full border-2 ${
+              isSelected
+                ? "border-accent bg-accent text-white"
+                : "border-base-mid/40 bg-white/80 dark:bg-base-dark/80"
+            }`}
+          >
+            {isSelected && <Check size={14} />}
+          </div>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={() => onPinToggle(note.id, !note.is_pinned)}
+              aria-label={note.is_pinned ? "Rimuovi dai fissati" : "Fissa in alto"}
+              className="absolute top-2 right-9 cursor-pointer rounded-full p-1 text-base-mid hover:bg-base-mid/10"
+            >
+              <Bookmark
+                size={18}
+                className={note.is_pinned ? "fill-base-mid" : ""}
+              />
+            </button>
 
-        <button
-          ref={menuButtonRef}
-          type="button"
-          onClick={() => (menuOpen ? closeMenu() : openMenu())}
-          className="absolute top-2 right-2 cursor-pointer rounded-full p-1 text-base-mid hover:bg-base-mid/10"
-          aria-label="Azioni nota"
-        >
-          <MoreHorizontal size={18} />
-        </button>
+            <button
+              ref={menuButtonRef}
+              type="button"
+              onClick={() => (menuOpen ? closeMenu() : openMenu())}
+              className="absolute top-2 right-2 cursor-pointer rounded-full p-1 text-base-mid hover:bg-base-mid/10"
+              aria-label="Azioni nota"
+            >
+              <MoreHorizontal size={18} />
+            </button>
+          </>
+        )}
 
         {menuOpen &&
           menuPosition &&
