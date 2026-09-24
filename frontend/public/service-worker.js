@@ -6,7 +6,7 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(payload.title ?? "Promemoria", {
       body: payload.body,
-      icon: payload.icon ?? "/favicon.svg",
+      icon: payload.icon ?? "/logo-icon.png",
       tag: payload.tag,
       data: payload.data,
     }),

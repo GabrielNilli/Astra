@@ -445,7 +445,11 @@ export function NoteCard({
           )}
       </div>
 
-      <div className={`rounded-b-2xl px-4 pt-1 pb-3.5 ${CARD_SURFACE}`}>
+      <div
+        className={`rounded-b-2xl px-4 pt-1 pb-3.5 ${CARD_SURFACE} ${
+          selectionMode ? "pointer-events-none" : ""
+        }`}
+      >
         {note.images.length > 0 && (
           <div
             className={`mb-3 grid gap-1.5 ${note.images.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}

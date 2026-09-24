@@ -40,7 +40,7 @@ class ReminderDueNotification extends Notification
 
         return (new WebPushMessage)
             ->title($title)
-            ->icon('/favicon.svg')
+            ->icon('/logo-icon.png')
             ->body($body ?: 'Promemoria in scadenza')
             ->data(['url' => $url])
             ->tag('reminder-'.$this->reminder->id);
