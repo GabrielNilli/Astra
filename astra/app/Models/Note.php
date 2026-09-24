@@ -16,13 +16,18 @@ class Note extends Model
         'content',
         'color',
         'icon',
+        'note_type',
+        'block_data',
         'is_shared',
         'has_reminder',
+        'is_pinned',
     ];
 
     protected $casts = [
         'is_shared' => 'boolean',
         'has_reminder' => 'boolean',
+        'is_pinned' => 'boolean',
+        'block_data' => 'array',
     ];
 
     protected static function booted(): void

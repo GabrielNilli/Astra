@@ -15,6 +15,7 @@ type AuthContextValue = {
   login: (payload: Parameters<typeof authApi.login>[0]) => Promise<void>
   logout: () => Promise<void>
   uploadProfilePicture: (photo: File) => Promise<void>
+  updateAccentColor: (accentColor: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -74,6 +75,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     persist({ user: updatedUser, token })
   }
 
+  async function updateAccentColor(accentColor: string) {
+    if (!token) {
+      throw new Error('Devi effettuare il login.')
+    }
+    const updatedUser = await authApi.updateAccentColor(token, accentColor)
+    persist({ user: updatedUser, token })
+  }
+
   async function logout() {
     if (token) {
       try {
@@ -89,7 +98,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, loading, register, login, logout, uploadProfilePicture }}
+      value={{
+        user,
+        token,
+        loading,
+        register,
+        login,
+        logout,
+        uploadProfilePicture,
+        updateAccentColor,
+      }}
     >
       {children}
     </AuthContext.Provider>

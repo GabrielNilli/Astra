@@ -16,6 +16,20 @@ class NoteController extends Controller
         'images:id,note_id,path',
     ];
 
+    private const BLOCK_DATA_RULES = [
+        'note_type' => 'sometimes|in:plain,checklist,code,stats',
+        'block_data' => 'sometimes|nullable|array',
+        'block_data.items' => 'required_if:note_type,checklist|array',
+        'block_data.items.*.text' => 'required_with:block_data.items|string|max:255',
+        'block_data.items.*.done' => 'sometimes|boolean',
+        'block_data.language' => 'nullable|string|max:32',
+        'block_data.code' => 'required_if:note_type,code|string',
+        'block_data.rows' => 'required_if:note_type,stats|array',
+        'block_data.rows.*.label' => 'required_with:block_data.rows|string|max:64',
+        'block_data.rows.*.value' => 'required_with:block_data.rows|string|max:128',
+        'is_pinned' => 'sometimes|boolean',
+    ];
+
     public function index(Request $request)
     {
         $userId = $request->user()->id;
@@ -26,6 +40,7 @@ class NoteController extends Controller
         })
             ->with(self::RELATIONS)
             ->when($request->filled('section_id'), fn ($query) => $query->whereHas('sections', fn ($sections) => $sections->whereKey($request->integer('section_id'))))
+            ->orderByDesc('is_pinned')
             ->latest()
             ->get();
     }
@@ -42,6 +57,7 @@ class NoteController extends Controller
             'is_shared' => 'sometimes|boolean',
             'shared_with' => 'sometimes|array',
             'shared_with.*' => 'integer|exists:users,id',
+            ...self::BLOCK_DATA_RULES,
         ]);
 
         $note = Note::create([
@@ -50,7 +66,10 @@ class NoteController extends Controller
             'content' => $request->content,
             'color' => $request->color,
             'icon' => $request->icon,
+            'note_type' => $request->input('note_type', 'plain'),
+            'block_data' => $request->input('block_data'),
             'is_shared' => $request->boolean('is_shared'),
+            'is_pinned' => $request->boolean('is_pinned'),
         ]);
 
         if ($request->filled('section_ids')) {
@@ -78,9 +97,12 @@ class NoteController extends Controller
             'is_shared' => 'sometimes|boolean',
             'shared_with' => 'sometimes|array',
             'shared_with.*' => 'integer|exists:users,id',
+            ...self::BLOCK_DATA_RULES,
         ]);
 
-        $note->update($request->only('title', 'content', 'color', 'icon', 'is_shared'));
+        $note->update($request->only(
+            'title', 'content', 'color', 'icon', 'is_shared', 'note_type', 'block_data', 'is_pinned',
+        ));
 
         if ($request->has('section_ids')) {
             $note->sections()->sync($request->input('section_ids', []));

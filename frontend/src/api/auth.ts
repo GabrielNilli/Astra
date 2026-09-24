@@ -5,6 +5,7 @@ export type User = {
   name: string
   email: string
   profile_pic: string | null
+  accent_color: string | null
 }
 
 export type AuthResponse = {
@@ -37,4 +38,12 @@ export function uploadProfilePicture(token: string, photo: File) {
   const body = new FormData()
   body.append('photo', photo)
   return apiFetch<User>('/user/profile-picture', { method: 'POST', body, token })
+}
+
+export function updateAccentColor(token: string, accentColor: string) {
+  return apiFetch<User>('/user/accent-color', {
+    method: 'PATCH',
+    body: { accent_color: accentColor },
+    token,
+  })
 }

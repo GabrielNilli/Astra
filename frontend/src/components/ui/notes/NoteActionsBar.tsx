@@ -134,27 +134,27 @@ export function NoteActionsBar({
         <div className="flex overflow-hidden rounded-md border border-base-mid/40">
           <button
             type="button"
-            onClick={() => onViewModeChange("list")}
-            aria-label="Vista a lista"
-            className={`cursor-pointer p-1.5 ${
-              viewMode === "list"
-                ? "bg-accent/10 text-accent"
-                : "text-base-mid hover:bg-base-mid/10"
-            }`}
-          >
-            <List size={16} />
-          </button>
-          <button
-            type="button"
             onClick={() => onViewModeChange("grid")}
             aria-label="Vista a griglia"
-            className={`cursor-pointer border-l border-base-mid/40 p-1.5 ${
+            className={`cursor-pointer p-1.5 ${
               viewMode === "grid"
                 ? "bg-accent/10 text-accent"
                 : "text-base-mid hover:bg-base-mid/10"
             }`}
           >
             <LayoutGrid size={16} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onViewModeChange("list")}
+            aria-label="Vista a lista"
+            className={`cursor-pointer border-l border-base-mid/40 p-1.5 ${
+              viewMode === "list"
+                ? "bg-accent/10 text-accent"
+                : "text-base-mid hover:bg-base-mid/10"
+            }`}
+          >
+            <List size={16} />
           </button>
         </div>
 

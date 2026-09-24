@@ -3,6 +3,7 @@
 // =================================
 import { useState } from "react";
 import { useAuth } from "../../../context/AuthContext";
+import { ApiError } from "../../../api/client";
 import {
   applyAccentColor,
   applyTheme,
@@ -24,9 +25,12 @@ export function SettingsPage() {
   // =================================
   //  CONSTS
   // =================================
-  const { logout } = useAuth();
+  const { logout, user, updateAccentColor } = useAuth();
   const [theme, setTheme] = useState<ThemeMode>(getSettings().theme);
-  const [accentColor, setAccentColor] = useState(getSettings().accentColor);
+  const [accentColor, setAccentColor] = useState(
+    user?.accent_color ?? getSettings().accentColor,
+  );
+  const [accentError, setAccentError] = useState<string | null>(null);
 
   const handleThemeChange = (value: ThemeMode) => {
     setTheme(value);
@@ -34,10 +38,24 @@ export function SettingsPage() {
     applyTheme(value);
   };
 
-  const handleAccentChange = (value: string) => {
+  const handleAccentChange = async (value: string) => {
+    const previousColor = accentColor;
     setAccentColor(value);
-    updateSettings({ accentColor: value });
+    setAccentError(null);
     applyAccentColor(value);
+
+    try {
+      // Il colore è legato al profilo: ogni utente ha il proprio, salvato lato server.
+      await updateAccentColor(value);
+    } catch (err) {
+      setAccentColor(previousColor);
+      applyAccentColor(previousColor);
+      setAccentError(
+        err instanceof ApiError
+          ? err.message
+          : "Impossibile salvare il colore.",
+      );
+    }
   };
 
   // =================================
@@ -53,8 +71,11 @@ export function SettingsPage() {
             theme={theme}
             onThemeChange={handleThemeChange}
             accentColor={accentColor}
-            onAccentChange={handleAccentChange}
+            onAccentChange={(value) => void handleAccentChange(value)}
           />
+          {accentError && (
+            <p className="text-xs text-red-600 dark:text-red-400">{accentError}</p>
+          )}
         </div>
 
         <div className="mt-6">

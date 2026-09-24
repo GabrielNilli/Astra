@@ -42,7 +42,7 @@ export function NotesPage() {
   const [sections, setSections] = useState<Section[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState<number | null>(null);
-  const [viewMode, setViewMode] = useState<NoteViewMode>("list");
+  const [viewMode, setViewMode] = useState<NoteViewMode>("grid");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
 
@@ -96,13 +96,43 @@ export function NotesPage() {
     if (!token) return;
     const note = notesList.find((n) => n.id === id);
     if (!note) return;
-    // Copia il contenuto e l'aspetto; condivisione e promemoria restano solo all'originale
+    // Copia il contenuto e l'aspetto; condivisione, promemoria e pin restano solo all'originale
     createNote(token, {
       title: note.title ?? undefined,
       content: note.content,
       color: note.color ?? undefined,
       icon: note.icon ?? undefined,
+      note_type: note.note_type,
+      block_data: note.block_data ?? undefined,
       section_ids: note.sections.map((section) => section.id),
+    }).then(handleNoteRefresh);
+  }
+
+  function handleNoteChecklistToggle(id: number, itemIndex: number) {
+    if (!token) return;
+    const note = notesList.find((n) => n.id === id);
+    if (!note || note.note_type !== "checklist" || !note.block_data || !("items" in note.block_data)) {
+      return;
+    }
+    const items = note.block_data.items.map((item, index) =>
+      index === itemIndex ? { ...item, done: !item.done } : item,
+    );
+    updateNote(token, id, {
+      title: note.title ?? undefined,
+      content: note.content,
+      note_type: "checklist",
+      block_data: { items },
+    }).then(handleNoteRefresh);
+  }
+
+  function handleNotePinToggle(id: number, pinned: boolean) {
+    if (!token) return;
+    const note = notesList.find((n) => n.id === id);
+    if (!note) return;
+    updateNote(token, id, {
+      title: note.title ?? undefined,
+      content: note.content,
+      is_pinned: pinned,
     }).then(handleNoteRefresh);
   }
 
@@ -220,6 +250,8 @@ export function NotesPage() {
                     onSectionsChange={handleNoteSectionsChange}
                     onDuplicate={handleNoteDuplicate}
                     onEdit={setEditingNote}
+                    onChecklistToggle={handleNoteChecklistToggle}
+                    onPinToggle={handleNotePinToggle}
                   />
                 </div>
               ))}

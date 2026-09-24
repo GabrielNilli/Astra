@@ -3,15 +3,28 @@
 // =================================
 import { useState } from "react";
 import type { Section } from "../../../api/sections";
-import type { Note, NotePayload, NoteReminderInput } from "../../../api/notes";
+import type {
+  ChecklistItem,
+  Note,
+  NotePayload,
+  NoteReminderInput,
+  NoteType,
+  StatRow,
+} from "../../../api/notes";
 import type { ReminderRecurrence } from "../../../api/reminders";
 import { COLOR_PRESETS } from "../../../constants/colors";
 import type { UserSummary } from "../../../api/users";
 import { NoteSharePicker } from "./NoteSharePicker";
 import { NoteIconPicker } from "./NoteIconPicker";
 import { NoteImagesField } from "./NoteImagesField";
+import { NoteTypeSelector } from "./NoteTypeSelector";
+import { ChecklistEditor } from "./ChecklistEditor";
+import { CodeSnippetEditor } from "./CodeSnippetEditor";
+import { StatRowsEditor } from "./StatRowsEditor";
+import { NoteRichTextEditor } from "./NoteRichTextEditor";
 import GenericButton from "../GenericButton";
 import { ColorPicker } from "../ColorPicker";
+import { isContentEmpty } from "../../../utils/richText";
 
 // =================================
 //  TYPE
@@ -76,6 +89,23 @@ export function NoteFormModal({
   );
   const [color, setColor] = useState(note?.color ?? DEFAULT_COLOR);
   const [icon, setIcon] = useState<string | null>(note?.icon ?? null);
+  const [noteType, setNoteType] = useState<NoteType>(note?.note_type ?? "plain");
+  const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>(
+    note?.note_type === "checklist" && note.block_data && "items" in note.block_data
+      ? note.block_data.items
+      : [],
+  );
+  const [codeSnippet, setCodeSnippet] = useState<{ language: string; code: string }>(
+    note?.note_type === "code" && note.block_data && "code" in note.block_data
+      ? { language: note.block_data.language, code: note.block_data.code }
+      : { language: "", code: "" },
+  );
+  const [statRows, setStatRows] = useState<StatRow[]>(
+    note?.note_type === "stats" && note.block_data && "rows" in note.block_data
+      ? note.block_data.rows
+      : [],
+  );
+  const [isPinned, setIsPinned] = useState(Boolean(note?.is_pinned));
   const [hasReminder, setHasReminder] = useState(Boolean(existingReminder));
   const [remindAt, setRemindAt] = useState(
     existingReminder ? toDateTimeLocal(existingReminder.remind_at) : "",
@@ -95,10 +125,19 @@ export function NoteFormModal({
   // =================================
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (!content.trim()) return;
+    if (isContentEmpty(content)) return;
     if (hasReminder && !remindAt) return;
 
     const recipients = isShared ? sharedWith.map((user) => user.id) : [];
+
+    const blockData =
+      noteType === "checklist"
+        ? { items: checklistItems }
+        : noteType === "code"
+          ? codeSnippet
+          : noteType === "stats"
+            ? { rows: statRows }
+            : null;
 
     onSubmit({
       note: {
@@ -106,9 +145,12 @@ export function NoteFormModal({
         content,
         color,
         icon: icon ?? undefined,
+        note_type: noteType,
+        block_data: blockData,
         section_ids: sectionIds,
         is_shared: recipients.length > 0,
         shared_with: recipients,
+        is_pinned: isPinned,
       },
       reminder: hasReminder
         ? { remind_at: new Date(remindAt).toISOString(), recurrence }
@@ -143,14 +185,42 @@ export function NoteFormModal({
           className={FIELD_CLASS}
         />
 
-        <textarea
-          placeholder="Contenuto"
+        <NoteRichTextEditor
           value={content}
-          onChange={(event) => setContent(event.target.value)}
-          required
-          rows={4}
-          className={`${FIELD_CLASS} resize-none`}
+          onChange={setContent}
+          fieldClassName={FIELD_CLASS}
         />
+
+        {/* Tipo di nota */}
+        <div>
+          <p className="mb-1 text-xs font-medium text-base-mid">Tipo</p>
+          <NoteTypeSelector value={noteType} onChange={setNoteType} />
+        </div>
+
+        {noteType === "checklist" && (
+          <ChecklistEditor
+            items={checklistItems}
+            onChange={setChecklistItems}
+            fieldClassName={FIELD_CLASS}
+          />
+        )}
+
+        {noteType === "code" && (
+          <CodeSnippetEditor
+            language={codeSnippet.language}
+            code={codeSnippet.code}
+            onChange={setCodeSnippet}
+            fieldClassName={FIELD_CLASS}
+          />
+        )}
+
+        {noteType === "stats" && (
+          <StatRowsEditor
+            rows={statRows}
+            onChange={setStatRows}
+            fieldClassName={FIELD_CLASS}
+          />
+        )}
 
         {sections.length > 0 && (
           <div>
@@ -217,6 +287,17 @@ export function NoteFormModal({
             fieldClassName={FIELD_CLASS}
           />
         </div>
+
+        {/* Pin */}
+        <label className="flex cursor-pointer items-center gap-2 text-sm text-base-dark dark:text-base-light">
+          <input
+            type="checkbox"
+            checked={isPinned}
+            onChange={(event) => setIsPinned(event.target.checked)}
+            className="accent-accent"
+          />
+          Fissa in alto
+        </label>
 
         {/* Promemoria */}
         <div className="space-y-2">

@@ -26,4 +26,16 @@ class ProfileController extends Controller
 
         return response()->json($user);
     }
+
+    public function updateAccentColor(Request $request)
+    {
+        $validated = $request->validate([
+            'accent_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+        ]);
+
+        $user = $request->user();
+        $user->update(['accent_color' => $validated['accent_color']]);
+
+        return response()->json($user);
+    }
 }

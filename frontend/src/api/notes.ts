@@ -19,6 +19,16 @@ export type NoteImage = {
   url: string;
 };
 
+export type NoteType = "plain" | "checklist" | "code" | "stats";
+
+export type ChecklistItem = { text: string; done: boolean };
+export type StatRow = { label: string; value: string };
+
+export type NoteBlockData =
+  | { items: ChecklistItem[] }
+  | { language: string; code: string }
+  | { rows: StatRow[] };
+
 export type Note = {
   id: number;
   created_by: number;
@@ -26,8 +36,11 @@ export type Note = {
   content: string;
   color: string | null;
   icon: string | null;
+  note_type: NoteType;
+  block_data: NoteBlockData | null;
   is_shared: boolean;
   has_reminder: boolean;
+  is_pinned: boolean;
   created_at: string;
   updated_at: string;
   sections: { id: number; name: string }[];
@@ -48,9 +61,12 @@ export type NotePayload = {
   content: string;
   color?: string;
   icon?: string;
+  note_type?: NoteType;
+  block_data?: NoteBlockData | null;
   section_ids?: number[];
   is_shared?: boolean;
   shared_with?: number[];
+  is_pinned?: boolean;
 };
 
 // =================================

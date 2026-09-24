@@ -20,6 +20,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/user/profile-picture', [ProfileController::class, 'updatePicture']);
+    Route::patch('/user/accent-color', [ProfileController::class, 'updateAccentColor']);
 
     Route::get('/users/search', [UserController::class, 'search']);
 

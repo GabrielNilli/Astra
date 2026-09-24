@@ -8,7 +8,11 @@ import { LoginPage } from "./components/pages/login/LoginPage";
 import { RegisterPage } from "./components/pages/login/RegisterPage";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
-import { applySettings, getSettings } from "./services/settings/settingsService";
+import {
+  applyAccentColor,
+  applySettings,
+  getSettings,
+} from "./services/settings/settingsService";
 
 import NavigationTabs from "./components/ui/NavigationTabs";
 import SideNav from "./components/ui/SideNav";
@@ -24,11 +28,19 @@ function App() {
   // =================================
   //  CONSTS
   // =================================
-  const { token } = useAuth();
+  const { token, user } = useAuth();
 
   useEffect(() => {
     applySettings(getSettings());
   }, []);
+
+  // Il colore accent è legato al profilo utente: quando l'utente è caricato
+  // (login o refresh) il suo colore personale sovrascrive quello locale/di default.
+  useEffect(() => {
+    if (user?.accent_color) {
+      applyAccentColor(user.accent_color);
+    }
+  }, [user?.accent_color]);
 
   // =================================
   //  RENDER
