@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    // Segreto condiviso con Cloud Scheduler per autenticare la chiamata
+    // periodica che innesca l'invio dei reminder scaduti (vedi RemindersCronController).
+    'cron' => [
+        'secret' => env('CRON_SECRET'),
+    ],
+
 ];

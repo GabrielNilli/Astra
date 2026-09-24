@@ -7,6 +7,7 @@ use App\Http\Controllers\NoteImageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ReminderController;
+use App\Http\Controllers\RemindersCronController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -14,6 +15,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+// Colpito da Cloud Scheduler ogni minuto, non da utenti autenticati: auth via header segreto.
+Route::post('/internal/reminders/send-due', [RemindersCronController::class, 'sendDue']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
