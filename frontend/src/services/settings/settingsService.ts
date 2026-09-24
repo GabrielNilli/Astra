@@ -63,6 +63,11 @@ export function applyTheme(theme: ThemeMode): void {
  */
 export function applyAccentColor(color: string): void {
   document.documentElement.style.setProperty("--color-accent", color);
+  // Su Android, da PWA installata, questo tag colora la barra di stato:
+  // la teniamo allineata al colore scelto dall'utente invece che fissa.
+  document
+    .querySelector('meta[name="theme-color"]')
+    ?.setAttribute("content", color);
 }
 
 /** Applica in un colpo solo tema e colore accent, usata all'avvio dell'app. */
