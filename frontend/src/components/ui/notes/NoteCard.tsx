@@ -255,7 +255,7 @@ export function NoteCard({
       {...tapGestures}
     >
       <div className={`relative rounded-t-2xl px-4 pt-3.5 pb-1 ${CARD_SURFACE}`}>
-        <div className="flex min-h-5 items-center gap-2 pr-16">
+        <div className="flex min-h-5 items-center gap-2 pr-20">
           {badge ? (
             <div
               className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold"
@@ -305,7 +305,7 @@ export function NoteCard({
               type="button"
               onClick={() => onPinToggle(note.id, !note.is_pinned)}
               aria-label={note.is_pinned ? "Rimuovi dai fissati" : "Fissa in alto"}
-              className="absolute top-2 right-9 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-base-mid/10 text-base-mid hover:bg-base-mid/20"
+              className="absolute top-2 right-11 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-base-mid/10 text-base-mid hover:bg-base-mid/20"
             >
               <Bookmark
                 size={18}
