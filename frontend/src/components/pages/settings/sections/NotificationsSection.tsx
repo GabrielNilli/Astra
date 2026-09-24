@@ -88,8 +88,8 @@ export default function NotificationsSection() {
             }`}
           >
             <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
-                isEnabled ? "translate-x-[22px]" : "translate-x-0.5"
+              className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
+                isEnabled ? "translate-x-[22px]" : "translate-x-0"
               }`}
             />
           </button>
