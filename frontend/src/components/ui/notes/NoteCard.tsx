@@ -305,7 +305,7 @@ export function NoteCard({
               type="button"
               onClick={() => onPinToggle(note.id, !note.is_pinned)}
               aria-label={note.is_pinned ? "Rimuovi dai fissati" : "Fissa in alto"}
-              className="absolute top-2 right-9 cursor-pointer rounded-full p-1 text-base-mid hover:bg-base-mid/10"
+              className="absolute top-2 right-9 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-base-mid/10 text-base-mid hover:bg-base-mid/20"
             >
               <Bookmark
                 size={18}
@@ -317,7 +317,7 @@ export function NoteCard({
               ref={menuButtonRef}
               type="button"
               onClick={() => (menuOpen ? closeMenu() : openMenu())}
-              className="absolute top-2 right-2 cursor-pointer rounded-full p-1 text-base-mid hover:bg-base-mid/10"
+              className="absolute top-2 right-2 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-base-mid/10 text-base-mid hover:bg-base-mid/20"
               aria-label="Azioni nota"
             >
               <MoreHorizontal size={18} />
