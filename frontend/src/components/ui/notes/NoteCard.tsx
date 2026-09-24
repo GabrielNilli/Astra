@@ -216,13 +216,13 @@ export function NoteCard({
   // =================================
   return (
     <div
-      className="overflow-hidden rounded-2xl border border-t-4 border-black/5 shadow-sm transition-shadow select-none hover:shadow-md dark:border-white/15"
+      className="rounded-2xl border border-t-4 border-black/5 shadow-sm transition-shadow select-none hover:shadow-md dark:border-white/15"
       style={{ borderTopColor: color }}
       onContextMenu={openMenu}
       onDoubleClick={handleEdit}
       {...tapGestures}
     >
-      <div className={`relative px-4 pt-3.5 pb-1 ${CARD_SURFACE}`}>
+      <div className={`relative rounded-t-2xl px-4 pt-3.5 pb-1 ${CARD_SURFACE}`}>
         <div className="flex min-h-5 items-center gap-2 pr-16">
           {badge ? (
             <div
@@ -393,7 +393,7 @@ export function NoteCard({
         )}
       </div>
 
-      <div className={`px-4 pt-1 pb-3.5 ${CARD_SURFACE}`}>
+      <div className={`rounded-b-2xl px-4 pt-1 pb-3.5 ${CARD_SURFACE}`}>
         {note.images.length > 0 && (
           <div
             className={`mb-3 grid gap-1.5 ${note.images.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}

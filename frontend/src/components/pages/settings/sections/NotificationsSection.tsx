@@ -20,7 +20,10 @@ export default function NotificationsSection() {
   // =================================
   const { token } = useAuth();
   const supported = isPushSupported();
-  const [isEnabled, setIsEnabled] = useState(false);
+  // null finché non abbiamo ancora controllato lato browser/server: evita di
+  // mostrare "spento" per un attimo anche quando in realtà è già attivo.
+  const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
+  const [isChecking, setIsChecking] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,10 +58,14 @@ export default function NotificationsSection() {
   //  USE EFFECTS
   // =================================
   useEffect(() => {
-    if (!supported || !token) return;
+    if (!supported || !token) {
+      setIsChecking(false);
+      return;
+    }
     syncExistingPushSubscription(token)
       .then(setIsEnabled)
-      .catch(() => setIsEnabled(false));
+      .catch(() => setIsEnabled(false))
+      .finally(() => setIsChecking(false));
   }, [supported, token]);
 
   // =================================
@@ -81,10 +88,14 @@ export default function NotificationsSection() {
           <button
             type="button"
             onClick={() => void handleToggle()}
-            disabled={isLoading}
-            aria-pressed={isEnabled}
-            className={`relative h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
-              isEnabled ? "bg-accent" : "bg-base-mid/30"
+            disabled={isLoading || isChecking}
+            aria-pressed={Boolean(isEnabled)}
+            className={`relative h-6 w-11 shrink-0 cursor-pointer rounded-full transition-colors disabled:cursor-not-allowed ${
+              isChecking
+                ? "animate-pulse bg-base-mid/20"
+                : isEnabled
+                  ? "bg-accent"
+                  : "bg-base-mid/30 disabled:opacity-60"
             }`}
           >
             <span
