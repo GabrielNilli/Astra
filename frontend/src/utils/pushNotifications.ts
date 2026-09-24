@@ -16,12 +16,16 @@ export function isPushSupported(): boolean {
   );
 }
 
-// Il browser vuole la chiave VAPID come Uint8Array, non come stringa base64url.
-function urlBase64ToUint8Array(base64: string): Uint8Array {
+// Il browser vuole la chiave VAPID come ArrayBuffer, non come stringa base64url.
+// (Uint8Array va bene a runtime, ma la sua versione generica non è sempre
+// assegnabile a BufferSource a seconda della versione di TypeScript: si passa
+// direttamente l'ArrayBuffer sottostante per evitare il problema.)
+function urlBase64ToArrayBuffer(base64: string): ArrayBuffer {
   const padding = "=".repeat((4 - (base64.length % 4)) % 4);
   const normalized = (base64 + padding).replace(/-/g, "+").replace(/_/g, "/");
   const raw = window.atob(normalized);
-  return Uint8Array.from([...raw].map((char) => char.charCodeAt(0)));
+  const bytes = Uint8Array.from([...raw].map((char) => char.charCodeAt(0)));
+  return bytes.buffer as ArrayBuffer;
 }
 
 export async function getExistingPushSubscription(): Promise<PushSubscription | null> {
@@ -47,7 +51,7 @@ export async function enablePushNotifications(token: string): Promise<void> {
   );
   const subscription = await registration.pushManager.subscribe({
     userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+    applicationServerKey: urlBase64ToArrayBuffer(VAPID_PUBLIC_KEY),
   });
 
   await subscribeToPush(token, subscription.toJSON());
