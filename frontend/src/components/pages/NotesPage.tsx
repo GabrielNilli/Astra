@@ -65,6 +65,7 @@ function SortableSectionGroup({
   onEdit,
   onChecklistToggle,
   onPinToggle,
+  onReminderToggle,
 }: {
   section: Section | null;
   notes: Note[];
@@ -78,6 +79,7 @@ function SortableSectionGroup({
   onEdit: (note: Note) => void;
   onChecklistToggle: (id: number, itemIndex: number) => void;
   onPinToggle: (id: number, pinned: boolean) => void;
+  onReminderToggle: (reminderId: number, done: boolean) => void;
 }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
     useSortable({ id: section?.id ?? "none", disabled: section === null });
@@ -133,6 +135,7 @@ function SortableSectionGroup({
               onEdit={onEdit}
               onChecklistToggle={onChecklistToggle}
               onPinToggle={onPinToggle}
+              onReminderToggle={onReminderToggle}
             />
           </div>
         ))}
@@ -248,6 +251,13 @@ export function NotesPage() {
       content: note.content,
       is_pinned: pinned,
     }).then(handleNoteRefresh);
+  }
+
+  function handleReminderToggle(reminderId: number, done: boolean) {
+    if (!token) return;
+    updateReminder(token, reminderId, { is_done: done }).then(
+      handleNoteRefresh,
+    );
   }
 
   function handleNoteEdit(
@@ -415,6 +425,7 @@ export function NotesPage() {
                   onEdit={setEditingNote}
                   onChecklistToggle={handleNoteChecklistToggle}
                   onPinToggle={handleNotePinToggle}
+                  onReminderToggle={handleReminderToggle}
                 />
               ))}
             </SortableContext>

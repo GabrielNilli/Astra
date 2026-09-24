@@ -5,6 +5,7 @@ use App\Http\Controllers\ChartEntryController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\NoteImageController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\UserController;
@@ -30,5 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/sections/reorder', [SectionController::class, 'reorder']);
     Route::apiResource('sections', SectionController::class)->only(['index', 'store', 'destroy']);
     Route::apiResource('reminders', ReminderController::class)->except('show');
+    Route::post('/push-subscriptions', [PushSubscriptionController::class, 'store']);
+    Route::delete('/push-subscriptions', [PushSubscriptionController::class, 'destroy']);
     Route::apiResource('chart-entries', ChartEntryController::class)->only(['index', 'store', 'destroy']);
 });

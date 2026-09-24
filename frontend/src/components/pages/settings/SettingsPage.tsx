@@ -14,6 +14,7 @@ import {
 
 import ProfileSection from "./sections/ProfileSection";
 import ThemeSection from "./sections/ThemeSection";
+import NotificationsSection from "./sections/NotificationsSection";
 
 import GenericButton from "../../ui/GenericButton";
 import { GenericHeader } from "../../ui/GenericHeader";
@@ -76,6 +77,7 @@ export function SettingsPage() {
           {accentError && (
             <p className="text-xs text-red-600 dark:text-red-400">{accentError}</p>
           )}
+          <NotificationsSection />
         </div>
 
         <div className="mt-6">

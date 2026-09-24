@@ -20,6 +20,7 @@ class Reminder extends Model
         'remind_at',
         'recurrence',
         'next_run_at',
+        'notified_at',
         'is_done',
         'is_shared',
     ];
@@ -27,6 +28,7 @@ class Reminder extends Model
     protected $casts = [
         'remind_at' => 'datetime',
         'next_run_at' => 'datetime',
+        'notified_at' => 'datetime',
         'is_done' => 'boolean',
         'is_shared' => 'boolean',
     ];

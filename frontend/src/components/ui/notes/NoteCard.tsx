@@ -96,6 +96,7 @@ export function NoteCard({
   onEdit,
   onChecklistToggle,
   onPinToggle,
+  onReminderToggle,
 }: {
   note: Note;
   sections: Section[];
@@ -106,6 +107,7 @@ export function NoteCard({
   onEdit: (note: Note) => void;
   onChecklistToggle: (id: number, itemIndex: number) => void;
   onPinToggle: (id: number, pinned: boolean) => void;
+  onReminderToggle: (reminderId: number, done: boolean) => void;
 }) {
   // =================================
   //  CONSTS
@@ -586,17 +588,25 @@ export function NoteCard({
           )}
 
           {note.reminders.map((reminder) => (
-            <div
+            <label
               key={reminder.id}
-              className={`flex items-center gap-1 ${reminder.is_done ? "line-through opacity-60" : ""}`}
+              className={`flex cursor-pointer items-center gap-1.5 ${reminder.is_done ? "line-through opacity-60" : ""}`}
             >
+              <input
+                type="checkbox"
+                checked={reminder.is_done}
+                onChange={(event) =>
+                  onReminderToggle(reminder.id, event.target.checked)
+                }
+                className="accent-accent"
+              />
               <AlarmClock size={12} className="shrink-0" />
               <span>
                 {formatDate(reminder.remind_at)}
                 {reminder.recurrence !== "none" &&
                   ` · ${RECURRENCE_LABELS[reminder.recurrence]}`}
               </span>
-            </div>
+            </label>
           ))}
 
           <div className="flex flex-wrap justify-between gap-x-3">
