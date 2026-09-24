@@ -3,6 +3,21 @@
 // =================================
 import { useState } from "react";
 import { List, LayoutGrid, Plus, Check } from "lucide-react";
+import {
+  DndContext,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { Section } from "../../../api/sections";
 import { NoteRefreshButton } from "./NoteRefreshButton";
 
@@ -14,11 +29,48 @@ export type NoteViewMode = "list" | "grid";
 // =================================
 //  COMPONENT
 // =================================
+function SectionPill({
+  section,
+  isActive,
+  onSelect,
+}: {
+  section: Section;
+  isActive: boolean;
+  onSelect: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: section.id });
+
+  return (
+    <button
+      ref={setNodeRef}
+      type="button"
+      onClick={onSelect}
+      {...attributes}
+      {...listeners}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
+      className={`shrink-0 cursor-grab rounded-full border px-3 py-1 text-xs font-medium active:cursor-grabbing ${
+        isDragging ? "opacity-50" : ""
+      } ${
+        isActive
+          ? "border-accent bg-accent/10 text-accent"
+          : "border-base-mid/25 text-base-mid hover:bg-base-mid/10"
+      }`}
+    >
+      {section.name}
+    </button>
+  );
+}
+
 export function NoteActionsBar({
   sections,
   activeSectionId,
   onSectionChange,
   onSectionCreate,
+  onSectionReorder,
   viewMode,
   onViewModeChange,
   onRefresh,
@@ -27,6 +79,7 @@ export function NoteActionsBar({
   activeSectionId: number | null;
   onSectionChange: (id: number | null) => void;
   onSectionCreate: (name: string) => void;
+  onSectionReorder: (orderedIds: number[]) => void;
   viewMode: NoteViewMode;
   onViewModeChange: (mode: NoteViewMode) => void;
   onRefresh: () => void;
@@ -36,6 +89,15 @@ export function NoteActionsBar({
   // =================================
   const [isAddingSection, setIsAddingSection] = useState(false);
   const [newSectionName, setNewSectionName] = useState("");
+  // Mouse: basta spostarsi di qualche pixel (un tap resta un tap/filtro).
+  // Touch: serve una pressione prolungata, altrimenti uno swipe per scorrere
+  // la barra verrebbe scambiato per un drag e non si potrebbe più scrollare.
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 300, tolerance: 8 },
+    }),
+  );
 
   // =================================
   //  FUNCTIONS
@@ -47,6 +109,19 @@ export function NoteActionsBar({
     onSectionCreate(name);
     setNewSectionName("");
     setIsAddingSection(false);
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = sections.findIndex((section) => section.id === active.id);
+    const newIndex = sections.findIndex((section) => section.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    onSectionReorder(
+      arrayMove(sections, oldIndex, newIndex).map((section) => section.id),
+    );
   }
 
   // =================================
@@ -68,20 +143,21 @@ export function NoteActionsBar({
           >
             Tutte
           </button>
-          {sections.map((section) => (
-            <button
-              key={section.id}
-              type="button"
-              onClick={() => onSectionChange(section.id)}
-              className={`shrink-0 cursor-pointer rounded-full border px-3 py-1 text-xs font-medium ${
-                activeSectionId === section.id
-                  ? "border-accent bg-accent/10 text-accent"
-                  : "border-base-mid/25 text-base-mid hover:bg-base-mid/10"
-              }`}
+          <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+            <SortableContext
+              items={sections.map((section) => section.id)}
+              strategy={horizontalListSortingStrategy}
             >
-              {section.name}
-            </button>
-          ))}
+              {sections.map((section) => (
+                <SectionPill
+                  key={section.id}
+                  section={section}
+                  isActive={activeSectionId === section.id}
+                  onSelect={() => onSectionChange(section.id)}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
 
           {isAddingSection && (
             <form

@@ -2,6 +2,21 @@
 //  IMPORTS
 // =================================
 import { useEffect, useState } from "react";
+import { GripVertical } from "lucide-react";
+import {
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 import { useAuth } from "../../context/AuthContext";
 
@@ -27,11 +42,105 @@ import {
   deleteReminder,
   updateReminder,
 } from "../../api/reminders";
-import { createSection, listSections, type Section } from "../../api/sections";
+import {
+  createSection,
+  listSections,
+  reorderSections,
+  type Section,
+} from "../../api/sections";
 
 // =================================
 //  COMPONENT
 // =================================
+function SortableSectionGroup({
+  section,
+  notes,
+  showHeader,
+  viewMode,
+  sections,
+  onDelete,
+  onColorChange,
+  onSectionsChange,
+  onDuplicate,
+  onEdit,
+  onChecklistToggle,
+  onPinToggle,
+}: {
+  section: Section | null;
+  notes: Note[];
+  showHeader: boolean;
+  viewMode: NoteViewMode;
+  sections: Section[];
+  onDelete: (id: number) => void;
+  onColorChange: (id: number, color: string) => void;
+  onSectionsChange: (id: number, sectionIds: number[]) => void;
+  onDuplicate: (id: number) => void;
+  onEdit: (note: Note) => void;
+  onChecklistToggle: (id: number, itemIndex: number) => void;
+  onPinToggle: (id: number, pinned: boolean) => void;
+}) {
+  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
+    useSortable({ id: section?.id ?? "none", disabled: section === null });
+
+  return (
+    <section
+      ref={section ? setNodeRef : undefined}
+      style={
+        section
+          ? { transform: CSS.Transform.toString(transform), transition }
+          : undefined
+      }
+      className={`mb-6 last:mb-0 ${section && isDragging ? "opacity-50" : ""}`}
+    >
+      {showHeader && (
+        <div className="mb-2 flex items-center gap-2">
+          {section && (
+            <button
+              type="button"
+              ref={setActivatorNodeRef}
+              {...attributes}
+              {...listeners}
+              aria-label="Trascina per riordinare la sezione"
+              className="flex shrink-0 cursor-grab touch-none items-center text-base-mid hover:text-base-dark active:cursor-grabbing dark:hover:text-base-light"
+            >
+              <GripVertical size={14} />
+            </button>
+          )}
+          <h2 className="shrink-0 text-sm font-semibold text-base-dark dark:text-base-light">
+            {section?.name ?? "Senza sezione"}
+          </h2>
+          <span className="shrink-0 text-xs text-base-mid">{notes.length}</span>
+          <div className="h-px flex-1 bg-base-mid/20" />
+        </div>
+      )}
+
+      <div
+        className={
+          viewMode === "grid"
+            ? "columns-2 gap-3 md:columns-3 xl:columns-4 2xl:columns-5"
+            : "columns-1 gap-3 lg:columns-2"
+        }
+      >
+        {notes.map((note) => (
+          <div key={note.id} className="mb-3 break-inside-avoid">
+            <NoteCard
+              note={note}
+              sections={sections}
+              onDelete={onDelete}
+              onColorChange={onColorChange}
+              onSectionsChange={onSectionsChange}
+              onDuplicate={onDuplicate}
+              onEdit={onEdit}
+              onChecklistToggle={onChecklistToggle}
+              onPinToggle={onPinToggle}
+            />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function NotesPage() {
   // =================================
   //  CONSTS
@@ -45,6 +154,11 @@ export function NotesPage() {
   const [viewMode, setViewMode] = useState<NoteViewMode>("grid");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
+  // Stessa soglia della barra pillole: un tap sull'intestazione resta un tap,
+  // il drag scatta solo spostando il puntatore di qualche pixel.
+  const groupDragSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+  );
 
   // =================================
   //  FUNCTIONS
@@ -177,6 +291,32 @@ export function NotesPage() {
     );
   }
 
+  function handleSectionReorder(orderedIds: number[]) {
+    if (!token) return;
+    // Riordino ottimistico: l'ordine è quello che guida anche i gruppi di note in "Tutte"
+    setSections((prev) =>
+      [...prev].sort(
+        (a, b) => orderedIds.indexOf(a.id) - orderedIds.indexOf(b.id),
+      ),
+    );
+    reorderSections(token, orderedIds);
+  }
+
+  // Stesso riordino di handleSectionReorder, innescato però dal trascinamento
+  // delle intestazioni di sezione nella vista "Tutte" invece che dalle pillole.
+  function handleGroupDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = sections.findIndex((section) => section.id === active.id);
+    const newIndex = sections.findIndex((section) => section.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    handleSectionReorder(
+      arrayMove(sections, oldIndex, newIndex).map((section) => section.id),
+    );
+  }
+
   function handleNoteCreate({ note, reminder, newImages }: NoteFormValues) {
     if (!token) return;
     createNote(token, note)
@@ -197,6 +337,26 @@ export function NotesPage() {
         handleNoteRefresh();
       });
   }
+
+  // Raggruppa le note per sezione (vista "Tutte"): una nota con più sezioni
+  // compare in ciascun gruppo di appartenenza, coerente coi conteggi dei filtri.
+  const groupedNotes =
+    activeSectionId === null
+      ? [
+          ...sections
+            .map((section) => ({
+              section,
+              notes: notesList.filter((note) =>
+                note.sections.some((noteSection) => noteSection.id === section.id),
+              ),
+            }))
+            .filter((group) => group.notes.length > 0),
+          {
+            section: null,
+            notes: notesList.filter((note) => note.sections.length === 0),
+          },
+        ].filter((group) => group.notes.length > 0)
+      : [{ section: null, notes: notesList }];
 
   // =================================
   //  USE EFFECTS
@@ -222,6 +382,7 @@ export function NotesPage() {
           activeSectionId={activeSectionId}
           onSectionChange={setActiveSectionId}
           onSectionCreate={handleSectionCreate}
+          onSectionReorder={handleSectionReorder}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
           onRefresh={handleNoteRefresh}
@@ -232,31 +393,32 @@ export function NotesPage() {
         ) : notesList.length === 0 ? (
           <NoteEmptyState onCreate={() => setShowCreateForm(true)} />
         ) : (
-          <>
-            <div
-              className={
-                viewMode === "grid"
-                  ? "columns-2 gap-3 md:columns-3 xl:columns-4 2xl:columns-5"
-                  : "columns-1 gap-3 lg:columns-2"
-              }
+          <DndContext sensors={groupDragSensors} onDragEnd={handleGroupDragEnd}>
+            <SortableContext
+              items={groupedNotes
+                .filter((group) => group.section !== null)
+                .map((group) => group.section!.id)}
+              strategy={verticalListSortingStrategy}
             >
-              {notesList.map((note) => (
-                <div key={note.id} className="mb-3 break-inside-avoid">
-                  <NoteCard
-                    note={note}
-                    sections={sections}
-                    onDelete={handleNoteDelete}
-                    onColorChange={handleNoteColorChange}
-                    onSectionsChange={handleNoteSectionsChange}
-                    onDuplicate={handleNoteDuplicate}
-                    onEdit={setEditingNote}
-                    onChecklistToggle={handleNoteChecklistToggle}
-                    onPinToggle={handleNotePinToggle}
-                  />
-                </div>
+              {groupedNotes.map(({ section, notes: groupNotes }) => (
+                <SortableSectionGroup
+                  key={section?.id ?? "none"}
+                  section={section}
+                  notes={groupNotes}
+                  showHeader={groupedNotes.length > 1}
+                  viewMode={viewMode}
+                  sections={sections}
+                  onDelete={handleNoteDelete}
+                  onColorChange={handleNoteColorChange}
+                  onSectionsChange={handleNoteSectionsChange}
+                  onDuplicate={handleNoteDuplicate}
+                  onEdit={setEditingNote}
+                  onChecklistToggle={handleNoteChecklistToggle}
+                  onPinToggle={handleNotePinToggle}
+                />
               ))}
-            </div>
-          </>
+            </SortableContext>
+          </DndContext>
         )}
       </main>
 

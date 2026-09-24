@@ -30,3 +30,11 @@ export function createSection(token: string, name: string) {
 export function deleteSection(token: string, id: number) {
   return apiFetch<null>(`/sections/${id}`, { method: "DELETE", token });
 }
+
+export function reorderSections(token: string, sectionIds: number[]) {
+  return apiFetch<null>("/sections/reorder", {
+    method: "PATCH",
+    body: { section_ids: sectionIds },
+    token,
+  });
+}

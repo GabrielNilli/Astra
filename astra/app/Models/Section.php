@@ -28,4 +28,9 @@ class Section extends Model
     {
         return $this->belongsToMany(Note::class, 'note_section')->withTimestamps();
     }
+
+    public function positions()
+    {
+        return $this->hasMany(SectionPosition::class);
+    }
 }

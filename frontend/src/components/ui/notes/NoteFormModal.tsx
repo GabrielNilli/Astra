@@ -171,194 +171,200 @@ export function NoteFormModal({
       <form
         onClick={(event) => event.stopPropagation()}
         onSubmit={handleSubmit}
-        className="max-h-full w-full max-w-sm space-y-3 overflow-y-auto rounded-2xl border border-base-mid/25 bg-white p-4 dark:bg-base-dark"
+        className="max-h-full w-full max-w-sm space-y-3 overflow-y-auto rounded-2xl border border-base-mid/25 bg-white p-4 dark:bg-base-dark md:max-w-3xl md:space-y-0 md:grid md:grid-cols-[minmax(0,1fr)_260px] md:items-start md:gap-x-6 md:gap-y-4"
       >
-        <h2 className="text-lg font-semibold text-base-dark dark:text-base-light">
+        <h2 className="text-lg font-semibold text-base-dark dark:text-base-light md:col-span-2">
           {isEditing ? "Modifica nota" : "Nuova nota"}
         </h2>
 
-        <input
-          type="text"
-          placeholder="Titolo (opzionale)"
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          className={FIELD_CLASS}
-        />
-
-        <NoteRichTextEditor
-          value={content}
-          onChange={setContent}
-          fieldClassName={FIELD_CLASS}
-        />
-
-        {/* Tipo di nota */}
-        <div>
-          <p className="mb-1 text-xs font-medium text-base-mid">Tipo</p>
-          <NoteTypeSelector value={noteType} onChange={setNoteType} />
-        </div>
-
-        {noteType === "checklist" && (
-          <ChecklistEditor
-            items={checklistItems}
-            onChange={setChecklistItems}
-            fieldClassName={FIELD_CLASS}
-          />
-        )}
-
-        {noteType === "code" && (
-          <CodeSnippetEditor
-            language={codeSnippet.language}
-            code={codeSnippet.code}
-            onChange={setCodeSnippet}
-            fieldClassName={FIELD_CLASS}
-          />
-        )}
-
-        {noteType === "stats" && (
-          <StatRowsEditor
-            rows={statRows}
-            onChange={setStatRows}
-            fieldClassName={FIELD_CLASS}
-          />
-        )}
-
-        {sections.length > 0 && (
-          <div>
-            <p className="mb-1 text-xs font-medium text-base-mid">Sezioni</p>
-            <div className="flex flex-wrap gap-1.5">
-              {sections.map((section) => {
-                const isSelected = sectionIds.includes(section.id);
-                return (
-                  <button
-                    key={section.id}
-                    type="button"
-                    onClick={() =>
-                      setSectionIds((prev) =>
-                        isSelected
-                          ? prev.filter((id) => id !== section.id)
-                          : [...prev, section.id],
-                      )
-                    }
-                    className={`cursor-pointer rounded-full border px-3 py-1 text-xs font-medium ${
-                      isSelected
-                        ? "border-accent bg-accent/10 text-accent"
-                        : "border-base-mid/25 text-base-mid hover:bg-base-mid/10"
-                    }`}
-                  >
-                    {section.name}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Immagini */}
-        <div>
-          <p className="mb-1 text-xs font-medium text-base-mid">Immagini</p>
-          <NoteImagesField
-            existing={(note?.images ?? []).filter(
-              (image) => !removedImageIds.includes(image.id),
-            )}
-            newFiles={newImages}
-            onRemoveExisting={(id) =>
-              setRemovedImageIds((prev) => [...prev, id])
-            }
-            onNewFilesChange={setNewImages}
-          />
-        </div>
-
-        {/* Colore */}
-        <div>
-          <p className="mb-1 text-xs font-medium text-base-mid">Colore</p>
-          <ColorPicker
-            value={color}
-            onChange={setColor}
-            presets={[DEFAULT_COLOR, ...COLOR_PRESETS]}
-          />
-        </div>
-
-        {/* Icona */}
-        <div>
-          <p className="mb-1 text-xs font-medium text-base-mid">Icona</p>
-          <NoteIconPicker
-            value={icon}
-            onChange={setIcon}
-            fieldClassName={FIELD_CLASS}
-          />
-        </div>
-
-        {/* Pin */}
-        <label className="flex cursor-pointer items-center gap-2 text-sm text-base-dark dark:text-base-light">
+        {/* Colonna principale: contenuto della nota */}
+        <div className="space-y-3">
           <input
-            type="checkbox"
-            checked={isPinned}
-            onChange={(event) => setIsPinned(event.target.checked)}
-            className="accent-accent"
+            type="text"
+            placeholder="Titolo (opzionale)"
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            className={FIELD_CLASS}
           />
-          Fissa in alto
-        </label>
 
-        {/* Promemoria */}
-        <div className="space-y-2">
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-base-dark dark:text-base-light">
-            <input
-              type="checkbox"
-              checked={hasReminder}
-              onChange={(event) => setHasReminder(event.target.checked)}
-              className="accent-accent"
-            />
-            Aggiungi promemoria
-          </label>
+          <NoteRichTextEditor
+            value={content}
+            onChange={setContent}
+            fieldClassName={FIELD_CLASS}
+          />
 
-          {hasReminder && (
-            <>
-              <input
-                type="datetime-local"
-                value={remindAt}
-                onChange={(event) => setRemindAt(event.target.value)}
-                required
-                className={FIELD_CLASS}
-              />
-              <select
-                value={recurrence}
-                onChange={(event) =>
-                  setRecurrence(event.target.value as ReminderRecurrence)
-                }
-                className={FIELD_CLASS}
-              >
-                {RECURRENCE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </>
-          )}
-        </div>
+          {/* Tipo di nota */}
+          <div>
+            <p className="mb-1 text-xs font-medium text-base-mid">Tipo</p>
+            <NoteTypeSelector value={noteType} onChange={setNoteType} />
+          </div>
 
-        {/* Condivisione */}
-        <div className="space-y-2">
-          <label className="flex cursor-pointer items-center gap-2 text-sm text-base-dark dark:text-base-light">
-            <input
-              type="checkbox"
-              checked={isShared}
-              onChange={(event) => setIsShared(event.target.checked)}
-              className="accent-accent"
-            />
-            Condividi con altri utenti
-          </label>
-
-          {isShared && (
-            <NoteSharePicker
-              selected={sharedWith}
-              onChange={setSharedWith}
+          {noteType === "checklist" && (
+            <ChecklistEditor
+              items={checklistItems}
+              onChange={setChecklistItems}
               fieldClassName={FIELD_CLASS}
             />
           )}
+
+          {noteType === "code" && (
+            <CodeSnippetEditor
+              language={codeSnippet.language}
+              code={codeSnippet.code}
+              onChange={setCodeSnippet}
+              fieldClassName={FIELD_CLASS}
+            />
+          )}
+
+          {noteType === "stats" && (
+            <StatRowsEditor
+              rows={statRows}
+              onChange={setStatRows}
+              fieldClassName={FIELD_CLASS}
+            />
+          )}
+
+          {/* Immagini */}
+          <div>
+            <p className="mb-1 text-xs font-medium text-base-mid">Immagini</p>
+            <NoteImagesField
+              existing={(note?.images ?? []).filter(
+                (image) => !removedImageIds.includes(image.id),
+              )}
+              newFiles={newImages}
+              onRemoveExisting={(id) =>
+                setRemovedImageIds((prev) => [...prev, id])
+              }
+              onNewFilesChange={setNewImages}
+            />
+          </div>
         </div>
 
-        <div className="flex justify-end gap-2 pt-1">
+        {/* Colonna laterale: metadati e impostazioni */}
+        <div className="space-y-3">
+          {sections.length > 0 && (
+            <div>
+              <p className="mb-1 text-xs font-medium text-base-mid">Sezioni</p>
+              <div className="flex flex-wrap gap-1.5">
+                {sections.map((section) => {
+                  const isSelected = sectionIds.includes(section.id);
+                  return (
+                    <button
+                      key={section.id}
+                      type="button"
+                      onClick={() =>
+                        setSectionIds((prev) =>
+                          isSelected
+                            ? prev.filter((id) => id !== section.id)
+                            : [...prev, section.id],
+                        )
+                      }
+                      className={`cursor-pointer rounded-full border px-3 py-1 text-xs font-medium ${
+                        isSelected
+                          ? "border-accent bg-accent/10 text-accent"
+                          : "border-base-mid/25 text-base-mid hover:bg-base-mid/10"
+                      }`}
+                    >
+                      {section.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Colore */}
+          <div>
+            <p className="mb-1 text-xs font-medium text-base-mid">Colore</p>
+            <ColorPicker
+              value={color}
+              onChange={setColor}
+              presets={[DEFAULT_COLOR, ...COLOR_PRESETS]}
+            />
+          </div>
+
+          {/* Icona */}
+          <div>
+            <p className="mb-1 text-xs font-medium text-base-mid">Icona</p>
+            <NoteIconPicker
+              value={icon}
+              onChange={setIcon}
+              fieldClassName={FIELD_CLASS}
+            />
+          </div>
+
+          {/* Pin */}
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-base-dark dark:text-base-light">
+            <input
+              type="checkbox"
+              checked={isPinned}
+              onChange={(event) => setIsPinned(event.target.checked)}
+              className="accent-accent"
+            />
+            Fissa in alto
+          </label>
+
+          {/* Promemoria */}
+          <div className="space-y-2">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-base-dark dark:text-base-light">
+              <input
+                type="checkbox"
+                checked={hasReminder}
+                onChange={(event) => setHasReminder(event.target.checked)}
+                className="accent-accent"
+              />
+              Aggiungi promemoria
+            </label>
+
+            {hasReminder && (
+              <>
+                <input
+                  type="datetime-local"
+                  value={remindAt}
+                  onChange={(event) => setRemindAt(event.target.value)}
+                  required
+                  className={FIELD_CLASS}
+                />
+                <select
+                  value={recurrence}
+                  onChange={(event) =>
+                    setRecurrence(event.target.value as ReminderRecurrence)
+                  }
+                  className={FIELD_CLASS}
+                >
+                  {RECURRENCE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
+          </div>
+
+          {/* Condivisione */}
+          <div className="space-y-2">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-base-dark dark:text-base-light">
+              <input
+                type="checkbox"
+                checked={isShared}
+                onChange={(event) => setIsShared(event.target.checked)}
+                className="accent-accent"
+              />
+              Condividi con altri utenti
+            </label>
+
+            {isShared && (
+              <NoteSharePicker
+                selected={sharedWith}
+                onChange={setSharedWith}
+                fieldClassName={FIELD_CLASS}
+              />
+            )}
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 pt-1 md:col-span-2">
           <GenericButton type="button" variant="secondary" onClick={onClose}>
             Annulla
           </GenericButton>

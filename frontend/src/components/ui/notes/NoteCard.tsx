@@ -503,8 +503,8 @@ export function NoteCard({
                     Copia
                   </button>
                 </div>
-                <pre className="overflow-x-auto px-3 pb-3 text-xs">
-                  <code className="whitespace-pre text-slate-100">
+                <pre className="px-3 pb-3 text-xs">
+                  <code className="whitespace-pre-wrap break-words text-slate-100">
                     {note.block_data.code}
                   </code>
                 </pre>

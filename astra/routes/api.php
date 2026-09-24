@@ -27,6 +27,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('notes', NoteController::class)->except('show');
     Route::post('/notes/{note}/images', [NoteImageController::class, 'store']);
     Route::delete('/note-images/{noteImage}', [NoteImageController::class, 'destroy']);
+    Route::patch('/sections/reorder', [SectionController::class, 'reorder']);
     Route::apiResource('sections', SectionController::class)->only(['index', 'store', 'destroy']);
     Route::apiResource('reminders', ReminderController::class)->except('show');
     Route::apiResource('chart-entries', ChartEntryController::class)->only(['index', 'store', 'destroy']);
