@@ -26,11 +26,38 @@ class ReminderDueNotification extends Notification
 
     public function toWebPush(object $notifiable, self $notification): WebPushMessage
     {
+        $note = $this->reminder->note;
+        $frontendUrl = rtrim(config('app.frontend_url'), '/');
+
+        $title = $note?->title ?: $this->reminder->title;
+        $body = $note
+            ? $this->excerpt($note->content)
+            : ($this->reminder->description ?: 'Promemoria in scadenza');
+
+        $url = $note
+            ? $frontendUrl.'/notes?note='.$note->id
+            : $frontendUrl.'/notes';
+
         return (new WebPushMessage)
-            ->title($this->reminder->title)
+            ->title($title)
             ->icon('/favicon.svg')
-            ->body($this->reminder->description ?: 'Promemoria in scadenza')
-            ->data(['url' => rtrim(config('app.frontend_url'), '/').'/notes'])
+            ->body($body ?: 'Promemoria in scadenza')
+            ->data(['url' => $url])
             ->tag('reminder-'.$this->reminder->id);
+    }
+
+    // Il contenuto della nota può essere HTML (editor di testo ricco): la notifica
+    // vuole solo testo semplice, troncato per restare leggibile in una push.
+    private function excerpt(string $content, int $maxLength = 120): string
+    {
+        $text = trim(strip_tags($content));
+
+        if ($text === '') {
+            return '';
+        }
+
+        return mb_strlen($text) > $maxLength
+            ? mb_substr($text, 0, $maxLength).'…'
+            : $text;
     }
 }

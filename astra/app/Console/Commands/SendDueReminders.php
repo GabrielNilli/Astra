@@ -21,7 +21,7 @@ class SendDueReminders extends Command
         $dueReminders = Reminder::where('is_done', false)
             ->whereNull('notified_at')
             ->where('remind_at', '<=', now())
-            ->with(['author', 'sharedWithUsers'])
+            ->with(['author', 'sharedWithUsers', 'note'])
             ->get();
 
         foreach ($dueReminders as $reminder) {

@@ -2,6 +2,7 @@
 //  IMPORTS
 // =================================
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { GripVertical } from "lucide-react";
 import {
   DndContext,
@@ -149,6 +150,7 @@ export function NotesPage() {
   //  CONSTS
   // =================================
   const { token } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [notesList, setNotesList] = useState<Note[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
@@ -379,6 +381,25 @@ export function NotesPage() {
     if (!token) return;
     listSections(token).then(setSections);
   }, [token]);
+
+  // Apre direttamente una nota quando si arriva da un link tipo /notes?note=123
+  // (es. dal click su una notifica push di un reminder).
+  useEffect(() => {
+    const noteId = searchParams.get("note");
+    if (!noteId || notesList.length === 0) return;
+
+    const note = notesList.find((n) => n.id === Number(noteId));
+    if (note) setEditingNote(note);
+
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("note");
+        return next;
+      },
+      { replace: true },
+    );
+  }, [notesList, searchParams, setSearchParams]);
 
   // =================================
   //  RENDER
