@@ -57,6 +57,19 @@ export async function enablePushNotifications(token: string): Promise<void> {
   await subscribeToPush(token, subscription.toJSON());
 }
 
+// Se il browser ricorda già un'iscrizione (es. dopo un reset lato server) la
+// re-invia al backend: è un upsert per endpoint, quindi innocuo se già nota,
+// ma evita che resti "fantasma" solo lato browser senza mai arrivare al server.
+export async function syncExistingPushSubscription(
+  token: string,
+): Promise<boolean> {
+  const subscription = await getExistingPushSubscription();
+  if (!subscription) return false;
+
+  await subscribeToPush(token, subscription.toJSON());
+  return true;
+}
+
 export async function disablePushNotifications(token: string): Promise<void> {
   const subscription = await getExistingPushSubscription();
   if (!subscription) return;

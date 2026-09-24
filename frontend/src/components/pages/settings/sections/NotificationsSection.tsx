@@ -7,8 +7,8 @@ import { useAuth } from "../../../../context/AuthContext";
 import {
   disablePushNotifications,
   enablePushNotifications,
-  getExistingPushSubscription,
   isPushSupported,
+  syncExistingPushSubscription,
 } from "../../../../utils/pushNotifications";
 
 // =================================
@@ -55,11 +55,11 @@ export default function NotificationsSection() {
   //  USE EFFECTS
   // =================================
   useEffect(() => {
-    if (!supported) return;
-    getExistingPushSubscription()
-      .then((subscription) => setIsEnabled(subscription !== null))
+    if (!supported || !token) return;
+    syncExistingPushSubscription(token)
+      .then(setIsEnabled)
       .catch(() => setIsEnabled(false));
-  }, [supported]);
+  }, [supported, token]);
 
   // =================================
   //  RENDER
