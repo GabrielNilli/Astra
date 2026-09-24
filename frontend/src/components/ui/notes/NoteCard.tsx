@@ -2,6 +2,7 @@
 //  IMPORTS
 // =================================
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   MoreHorizontal,
   Share2,
@@ -125,7 +126,12 @@ export function NoteCard({
         ? SHARED_BADGE
         : null;
   const menuRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<{
+    top: number;
+    right: number;
+  } | null>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showSectionPicker, setShowSectionPicker] = useState(false);
   const [draftSectionIds, setDraftSectionIds] = useState<number[]>([]);
@@ -198,6 +204,18 @@ export function NoteCard({
   // =================================
   //  USE EFFECTS
   // =================================
+  // Il menu è renderizzato in un portal fuori dalla griglia (vedi RENDER): la
+  // posizione va quindi calcolata a mano dal bottone che lo apre.
+  useEffect(() => {
+    if (!menuOpen || !menuButtonRef.current) {
+      setMenuPosition(null);
+      return;
+    }
+
+    const rect = menuButtonRef.current.getBoundingClientRect();
+    setMenuPosition({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+  }, [menuOpen]);
+
   useEffect(() => {
     if (!menuOpen) return;
 
@@ -269,6 +287,7 @@ export function NoteCard({
         </button>
 
         <button
+          ref={menuButtonRef}
           type="button"
           onClick={() => (menuOpen ? closeMenu() : openMenu())}
           className="absolute top-2 right-2 cursor-pointer rounded-full p-1 text-base-mid hover:bg-base-mid/10"
@@ -277,12 +296,15 @@ export function NoteCard({
           <MoreHorizontal size={18} />
         </button>
 
-        {menuOpen && (
-          <div
-            ref={menuRef}
-            onDoubleClick={(event) => event.stopPropagation()}
-            className={`absolute top-9 right-2 z-10 w-44 overflow-hidden rounded-lg border border-base-mid/25 text-sm shadow-lg ${CARD_SURFACE}`}
-          >
+        {menuOpen &&
+          menuPosition &&
+          createPortal(
+            <div
+              ref={menuRef}
+              onDoubleClick={(event) => event.stopPropagation()}
+              style={{ top: menuPosition.top, right: menuPosition.right }}
+              className={`fixed z-50 w-44 overflow-hidden rounded-lg border border-base-mid/25 text-sm shadow-lg ${CARD_SURFACE}`}
+            >
             <button
               type="button"
               onClick={handleCopy}
@@ -389,8 +411,9 @@ export function NoteCard({
             >
               Elimina
             </button>
-          </div>
-        )}
+            </div>,
+            document.body,
+          )}
       </div>
 
       <div className={`rounded-b-2xl px-4 pt-1 pb-3.5 ${CARD_SURFACE}`}>
