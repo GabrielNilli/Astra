@@ -1,0 +1,17 @@
+{
+  "name": "Astra",
+  "short_name": "Astra",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#7e14ff",
+  "icons": [
+    {
+      "src": "/app-icon.png",
+      "sizes": "214x214",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

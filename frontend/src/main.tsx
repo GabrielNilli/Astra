@@ -20,3 +20,12 @@ createRoot(document.getElementById("root")!).render(
     </BrowserRouter>
   </StrictMode>,
 );
+
+// Registrato sempre, non solo quando si apre Impostazioni: un service worker
+// attivo è tra i requisiti che Chrome/Android controllano per considerare il
+// sito installabile come PWA, indipendentemente dalle notifiche push.
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/service-worker.js").catch(() => {
+    // L'installabilità PWA è un bonus, non un requisito: se fallisce non blocchiamo l'app.
+  });
+}
