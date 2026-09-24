@@ -222,7 +222,10 @@ export function NoteCard({
     }
 
     const rect = menuButtonRef.current.getBoundingClientRect();
-    setMenuPosition({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    setMenuPosition({
+      top: rect.bottom + 4,
+      right: window.innerWidth - rect.right,
+    });
   }, [menuOpen]);
 
   useEffect(() => {
@@ -254,7 +257,9 @@ export function NoteCard({
       }}
       {...tapGestures}
     >
-      <div className={`relative rounded-t-2xl px-4 pt-3.5 pb-1 ${CARD_SURFACE}`}>
+      <div
+        className={`relative rounded-t-2xl px-4 pt-3.5 pb-1 ${CARD_SURFACE}`}
+      >
         <div className="flex min-h-5 items-center gap-2 pr-20">
           {badge ? (
             <div
@@ -304,8 +309,10 @@ export function NoteCard({
             <button
               type="button"
               onClick={() => onPinToggle(note.id, !note.is_pinned)}
-              aria-label={note.is_pinned ? "Rimuovi dai fissati" : "Fissa in alto"}
-              className="absolute top-2 right-11 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-base-mid/10 text-base-mid hover:bg-base-mid/20"
+              aria-label={
+                note.is_pinned ? "Rimuovi dai fissati" : "Fissa in alto"
+              }
+              className="absolute top-2 right-10 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-base-mid/10 text-base-mid hover:bg-base-mid/20"
             >
               <Bookmark
                 size={18}
@@ -334,112 +341,112 @@ export function NoteCard({
               style={{ top: menuPosition.top, right: menuPosition.right }}
               className={`fixed z-50 w-44 overflow-hidden rounded-lg border border-base-mid/25 text-sm shadow-lg ${CARD_SURFACE}`}
             >
-            <button
-              type="button"
-              onClick={handleCopy}
-              className="block w-full cursor-pointer px-3 py-2 text-left text-base-dark hover:bg-base-mid/10 dark:text-base-light"
-            >
-              Copia testo
-            </button>
-            <button
-              type="button"
-              onClick={handleDuplicate}
-              className="block w-full cursor-pointer px-3 py-2 text-left text-base-dark hover:bg-base-mid/10 dark:text-base-light"
-            >
-              Duplica
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setDraftColor(color);
-                setShowColorPicker((value) => !value);
-              }}
-              className="block w-full cursor-pointer px-3 py-2 text-left text-base-dark hover:bg-base-mid/10 dark:text-base-light"
-            >
-              Cambia colore
-            </button>
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="block w-full cursor-pointer px-3 py-2 text-left text-base-dark hover:bg-base-mid/10 dark:text-base-light"
+              >
+                Copia testo
+              </button>
+              <button
+                type="button"
+                onClick={handleDuplicate}
+                className="block w-full cursor-pointer px-3 py-2 text-left text-base-dark hover:bg-base-mid/10 dark:text-base-light"
+              >
+                Duplica
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setDraftColor(color);
+                  setShowColorPicker((value) => !value);
+                }}
+                className="block w-full cursor-pointer px-3 py-2 text-left text-base-dark hover:bg-base-mid/10 dark:text-base-light"
+              >
+                Cambia colore
+              </button>
 
-            {showColorPicker && (
-              <div className="flex flex-wrap items-center gap-2 border-t border-base-mid/25 px-3 py-2">
-                {COLOR_PRESETS.map((preset) => (
-                  <button
-                    key={preset}
-                    type="button"
-                    onClick={() => handleColorPick(preset)}
-                    aria-label={`Usa ${preset} come colore`}
-                    className="h-6 w-6 cursor-pointer rounded-full border-2 border-transparent hover:scale-105"
-                    style={{ backgroundColor: preset }}
-                  />
-                ))}
-                <label
-                  title="Colore personalizzato"
-                  className="relative flex h-6 w-6 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-base-mid/40 text-xs leading-none text-base-mid"
-                >
-                  +
-                  <input
-                    type="color"
-                    value={draftColor}
-                    onChange={(event) => setDraftColor(event.target.value)}
-                    onBlur={() => {
-                      if (draftColor !== color) handleColorPick(draftColor);
-                    }}
-                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                  />
-                </label>
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={handleSectionPickerToggle}
-              className="block w-full cursor-pointer px-3 py-2 text-left text-base-dark hover:bg-base-mid/10 dark:text-base-light"
-            >
-              Aggiungi a
-            </button>
-
-            {showSectionPicker && (
-              <div className="max-h-40 overflow-y-auto border-t border-base-mid/25 py-1">
-                {sections.length === 0 && (
-                  <p className="px-3 py-2 text-xs text-base-mid">
-                    Nessuna sezione disponibile
-                  </p>
-                )}
-                {sections.map((section) => (
-                  <label
-                    key={section.id}
-                    className="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-base-dark hover:bg-base-mid/10 dark:text-base-light"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={draftSectionIds.includes(section.id)}
-                      onChange={() => handleSectionToggle(section.id)}
-                      className="accent-accent"
-                    />
-                    {section.name}
-                  </label>
-                ))}
-                {sections.length > 0 && (
-                  <div className="px-3 pt-1 pb-1">
+              {showColorPicker && (
+                <div className="flex flex-wrap items-center gap-2 border-t border-base-mid/25 px-3 py-2">
+                  {COLOR_PRESETS.map((preset) => (
                     <button
+                      key={preset}
                       type="button"
-                      onClick={handleSectionsConfirm}
-                      aria-label="Conferma sezioni"
-                      className="flex w-full cursor-pointer items-center justify-center rounded-md bg-accent py-1.5 text-white hover:brightness-90"
-                    >
-                      <Check size={14} />
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
+                      onClick={() => handleColorPick(preset)}
+                      aria-label={`Usa ${preset} come colore`}
+                      className="h-6 w-6 cursor-pointer rounded-full border-2 border-transparent hover:scale-105"
+                      style={{ backgroundColor: preset }}
+                    />
+                  ))}
+                  <label
+                    title="Colore personalizzato"
+                    className="relative flex h-6 w-6 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-base-mid/40 text-xs leading-none text-base-mid"
+                  >
+                    +
+                    <input
+                      type="color"
+                      value={draftColor}
+                      onChange={(event) => setDraftColor(event.target.value)}
+                      onBlur={() => {
+                        if (draftColor !== color) handleColorPick(draftColor);
+                      }}
+                      className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                    />
+                  </label>
+                </div>
+              )}
 
-            <button
-              type="button"
-              onClick={handleDelete}
-              className="block w-full cursor-pointer border-t border-base-mid/25 px-3 py-2 text-left text-red-600 hover:bg-red-600/10"
-            >
-              Elimina
-            </button>
+              <button
+                type="button"
+                onClick={handleSectionPickerToggle}
+                className="block w-full cursor-pointer px-3 py-2 text-left text-base-dark hover:bg-base-mid/10 dark:text-base-light"
+              >
+                Aggiungi a
+              </button>
+
+              {showSectionPicker && (
+                <div className="max-h-40 overflow-y-auto border-t border-base-mid/25 py-1">
+                  {sections.length === 0 && (
+                    <p className="px-3 py-2 text-xs text-base-mid">
+                      Nessuna sezione disponibile
+                    </p>
+                  )}
+                  {sections.map((section) => (
+                    <label
+                      key={section.id}
+                      className="flex cursor-pointer items-center gap-2 px-3 py-1.5 text-base-dark hover:bg-base-mid/10 dark:text-base-light"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={draftSectionIds.includes(section.id)}
+                        onChange={() => handleSectionToggle(section.id)}
+                        className="accent-accent"
+                      />
+                      {section.name}
+                    </label>
+                  ))}
+                  {sections.length > 0 && (
+                    <div className="px-3 pt-1 pb-1">
+                      <button
+                        type="button"
+                        onClick={handleSectionsConfirm}
+                        aria-label="Conferma sezioni"
+                        className="flex w-full cursor-pointer items-center justify-center rounded-md bg-accent py-1.5 text-white hover:brightness-90"
+                      >
+                        <Check size={14} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="block w-full cursor-pointer border-t border-base-mid/25 px-3 py-2 text-left text-red-600 hover:bg-red-600/10"
+              >
+                Elimina
+              </button>
             </div>,
             document.body,
           )}
