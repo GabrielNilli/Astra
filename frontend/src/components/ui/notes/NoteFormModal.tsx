@@ -113,6 +113,9 @@ export function NoteFormModal({
   const [recurrence, setRecurrence] = useState<ReminderRecurrence>(
     existingReminder?.recurrence ?? "none",
   );
+  const [reminderDone, setReminderDone] = useState(
+    Boolean(existingReminder?.is_done),
+  );
   const [newImages, setNewImages] = useState<File[]>([]);
   const [removedImageIds, setRemovedImageIds] = useState<number[]>([]);
   const [isShared, setIsShared] = useState(Boolean(note?.is_shared));
@@ -153,7 +156,11 @@ export function NoteFormModal({
         is_pinned: isPinned,
       },
       reminder: hasReminder
-        ? { remind_at: new Date(remindAt).toISOString(), recurrence }
+        ? {
+            remind_at: new Date(remindAt).toISOString(),
+            recurrence,
+            is_done: reminderDone,
+          }
         : null,
       newImages,
       removedImageIds,
@@ -338,6 +345,17 @@ export function NoteFormModal({
                     </option>
                   ))}
                 </select>
+                {existingReminder && (
+                  <label className="flex cursor-pointer items-center gap-2 text-sm text-base-dark dark:text-base-light">
+                    <input
+                      type="checkbox"
+                      checked={reminderDone}
+                      onChange={(event) => setReminderDone(event.target.checked)}
+                      className="accent-accent"
+                    />
+                    Fatto
+                  </label>
+                )}
               </>
             )}
           </div>

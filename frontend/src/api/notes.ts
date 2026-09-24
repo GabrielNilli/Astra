@@ -54,6 +54,7 @@ export type Note = {
 export type NoteReminderInput = {
   remind_at: string;
   recurrence: ReminderRecurrence;
+  is_done?: boolean;
 };
 
 export type NotePayload = {
