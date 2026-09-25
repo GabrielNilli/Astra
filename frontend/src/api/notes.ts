@@ -85,6 +85,19 @@ export type NotePayload = {
 // =================================
 //  FUNCTIONS
 // =================================
+// Il backend deployato non si aggiorna insieme al frontend (Cloud Run va
+// ridistribuito a mano): finché non lo si fa, campi nuovi come "attachments"
+// o "is_archived" possono mancare dalla risposta. Meglio riempirli con un
+// default innocuo che far crashare il render su un .length di undefined.
+function normalizeNote(note: Note): Note {
+  return {
+    ...note,
+    images: note.images ?? [],
+    attachments: note.attachments ?? [],
+    is_archived: note.is_archived ?? false,
+  };
+}
+
 export function listNotes(
   token: string,
   sectionId?: number,
@@ -94,11 +107,15 @@ export function listNotes(
   if (sectionId) params.set("section_id", String(sectionId));
   if (options?.archived) params.set("archived", "1");
   const query = params.toString() ? `?${params.toString()}` : "";
-  return apiFetch<Note[]>(`/notes${query}`, { token });
+  return apiFetch<Note[]>(`/notes${query}`, { token }).then((notes) =>
+    notes.map(normalizeNote),
+  );
 }
 
 export function createNote(token: string, payload: NotePayload) {
-  return apiFetch<Note>("/notes", { method: "POST", body: payload, token });
+  return apiFetch<Note>("/notes", { method: "POST", body: payload, token }).then(
+    normalizeNote,
+  );
 }
 
 export function updateNote(token: string, id: number, payload: NotePayload) {
@@ -106,7 +123,7 @@ export function updateNote(token: string, id: number, payload: NotePayload) {
     method: "PUT",
     body: payload,
     token,
-  });
+  }).then(normalizeNote);
 }
 
 export function deleteNote(token: string, id: number) {
