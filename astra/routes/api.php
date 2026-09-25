@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChartController;
 use App\Http\Controllers\ChartEntryController;
 use App\Http\Controllers\NoteAttachmentController;
 use App\Http\Controllers\NoteController;
@@ -40,5 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('reminders', ReminderController::class)->except('show');
     Route::post('/push-subscriptions', [PushSubscriptionController::class, 'store']);
     Route::delete('/push-subscriptions', [PushSubscriptionController::class, 'destroy']);
-    Route::apiResource('chart-entries', ChartEntryController::class)->only(['index', 'store', 'destroy']);
+    Route::apiResource('charts', ChartController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::post('/charts/{chart}/entries', [ChartEntryController::class, 'store']);
+    Route::delete('/chart-entries/{chartEntry}', [ChartEntryController::class, 'destroy']);
 });

@@ -2,29 +2,26 @@
 
 namespace App\Models;
 
-use App\Models\Concerns\Shareable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ChartEntry extends Model
 {
-    use HasFactory, Shareable;
+    use HasFactory;
 
     protected $fillable = [
-        'created_by',
-        'category',
+        'chart_id',
         'value',
+        'color',
         'recorded_on',
-        'is_shared',
     ];
 
     protected $casts = [
-        'recorded_on' => 'date',
-        'is_shared' => 'boolean',
+        'recorded_on' => 'date:Y-m-d',
     ];
 
-    public function author()
+    public function chart()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->belongsTo(Chart::class);
     }
 }

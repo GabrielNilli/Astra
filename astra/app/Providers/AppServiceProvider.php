@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Models\ChartEntry;
+use App\Models\Chart;
 use App\Models\Note;
 use App\Models\Reminder;
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -31,7 +31,7 @@ class AppServiceProvider extends ServiceProvider
         Relation::morphMap([
             'note' => Note::class,
             'reminder' => Reminder::class,
-            'chart_entry' => ChartEntry::class,
+            'chart' => Chart::class,
         ]);
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\User;
+use App\Models\Chart;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,11 +18,9 @@ class ChartEntryFactory extends Factory
     public function definition(): array
     {
         return [
-            'created_by' => User::factory(),
-            'category' => fake()->word(),
+            'chart_id' => Chart::factory(),
             'value' => fake()->randomFloat(2, 1, 500),
             'recorded_on' => fake()->dateTimeBetween('-1 month', 'now'),
-            'is_shared' => false,
         ];
     }
 }

@@ -55,9 +55,9 @@ class User extends Authenticatable
         return $this->hasMany(Reminder::class, 'created_by');
     }
 
-    public function chartEntries()
+    public function charts()
     {
-        return $this->hasMany(ChartEntry::class, 'created_by');
+        return $this->hasMany(Chart::class, 'created_by');
     }
 
     public function sharedNotes()
@@ -70,8 +70,8 @@ class User extends Authenticatable
         return $this->morphedByMany(Reminder::class, 'shareable', 'shares');
     }
 
-    public function sharedChartEntries()
+    public function sharedCharts()
     {
-        return $this->morphedByMany(ChartEntry::class, 'shareable', 'shares');
+        return $this->morphedByMany(Chart::class, 'shareable', 'shares');
     }
 }

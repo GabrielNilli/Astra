@@ -2,55 +2,34 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Chart;
 use App\Models\ChartEntry;
 use Illuminate\Http\Request;
 
 class ChartEntryController extends Controller
 {
-    public function index(Request $request)
+    public function store(Request $request, Chart $chart)
     {
-        $userId = $request->user()->id;
+        abort_unless($chart->isAccessibleBy($request->user()->id), 403);
 
-        return ChartEntry::where('created_by', $userId)
-            ->orWhereHas('shares', fn ($query) => $query->where('user_id', $userId))
-            ->orderBy('recorded_on')
-            ->get();
-    }
-
-    public function store(Request $request)
-    {
         $request->validate([
-            'category' => 'required|string|max:255',
             'value' => 'required|numeric',
+            'color' => 'sometimes|nullable|string|max:32',
             'recorded_on' => 'required|date',
-            'is_shared' => 'sometimes|boolean',
-            'shared_with' => 'sometimes|array',
-            'shared_with.*' => 'integer|exists:users,id',
         ]);
 
-        $entry = ChartEntry::create([
-            'created_by' => $request->user()->id,
-            'category' => $request->category,
+        $entry = $chart->entries()->create([
             'value' => $request->value,
+            'color' => $request->input('color'),
             'recorded_on' => $request->recorded_on,
-            'is_shared' => $request->boolean('is_shared'),
         ]);
 
-        if ($request->boolean('is_shared') && $request->filled('shared_with')) {
-            $entry->sharedWithUsers()->sync($request->input('shared_with'));
-        }
-
-        return response()->json($entry->load('sharedWithUsers'), 201);
+        return response()->json($entry, 201);
     }
 
     public function destroy(Request $request, ChartEntry $chartEntry)
     {
-        $userId = $request->user()->id;
-
-        $canTouch = $chartEntry->created_by === $userId
-            || $chartEntry->shares()->where('user_id', $userId)->exists();
-
-        abort_unless($canTouch, 403);
+        abort_unless($chartEntry->chart->isAccessibleBy($request->user()->id), 403);
 
         $chartEntry->delete();
 
