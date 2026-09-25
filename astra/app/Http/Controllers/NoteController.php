@@ -14,6 +14,7 @@ class NoteController extends Controller
         'sharedWithUsers:id,name,profile_pic',
         'reminders:id,note_id,remind_at,recurrence,is_done',
         'images:id,note_id,path',
+        'attachments:id,note_id,path,filename,mime_type,size',
     ];
 
     private const BLOCK_DATA_RULES = [
@@ -41,7 +42,12 @@ class NoteController extends Controller
                 ->orWhereHas('shares', fn ($shares) => $shares->where('user_id', $userId));
         })
             ->with(self::RELATIONS)
-            ->when($request->filled('section_id'), fn ($query) => $query->whereHas('sections', fn ($sections) => $sections->whereKey($request->integer('section_id'))))
+            ->when(
+                $request->boolean('archived'),
+                fn ($query) => $query->whereNotNull('archived_at'),
+                fn ($query) => $query->whereNull('archived_at')
+                    ->when($request->filled('section_id'), fn ($query) => $query->whereHas('sections', fn ($sections) => $sections->whereKey($request->integer('section_id')))),
+            )
             ->orderByDesc('is_pinned')
             ->latest()
             ->get();
@@ -99,12 +105,17 @@ class NoteController extends Controller
             'is_shared' => 'sometimes|boolean',
             'shared_with' => 'sometimes|array',
             'shared_with.*' => 'integer|exists:users,id',
+            'is_archived' => 'sometimes|boolean',
             ...self::BLOCK_DATA_RULES,
         ]);
 
         $note->update($request->only(
             'title', 'content', 'color', 'icon', 'is_shared', 'note_type', 'block_data', 'is_pinned',
         ));
+
+        if ($request->has('is_archived')) {
+            $note->update(['archived_at' => $request->boolean('is_archived') ? now() : null]);
+        }
 
         if ($request->has('section_ids')) {
             $note->sections()->sync($request->input('section_ids', []));
@@ -128,11 +139,6 @@ class NoteController extends Controller
 
     private function authorizeAccess(Request $request, Note $note): void
     {
-        $userId = $request->user()->id;
-
-        $canTouch = $note->created_by === $userId
-            || $note->shares()->where('user_id', $userId)->exists();
-
-        abort_unless($canTouch, 403);
+        abort_unless($note->isAccessibleBy($request->user()->id), 403);
     }
 }

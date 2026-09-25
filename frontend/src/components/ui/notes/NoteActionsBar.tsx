@@ -2,7 +2,7 @@
 //  IMPORTS
 // =================================
 import { useState } from "react";
-import { List, LayoutGrid, Plus, Check, CheckSquare, X } from "lucide-react";
+import { List, LayoutGrid, Plus, Check, CheckSquare, X, Search, Archive } from "lucide-react";
 import {
   DndContext,
   MouseSensor,
@@ -76,6 +76,10 @@ export function NoteActionsBar({
   onRefresh,
   selectionMode,
   onToggleSelectionMode,
+  searchQuery,
+  onSearchChange,
+  viewFilter,
+  onViewFilterChange,
 }: {
   sections: Section[];
   activeSectionId: number | null;
@@ -87,6 +91,10 @@ export function NoteActionsBar({
   onRefresh: () => void;
   selectionMode: boolean;
   onToggleSelectionMode: () => void;
+  searchQuery: string;
+  onSearchChange: (query: string) => void;
+  viewFilter: "active" | "archived";
+  onViewFilterChange: (filter: "active" | "archived") => void;
 }) {
   // =================================
   //  CONSTS
@@ -209,6 +217,31 @@ export function NoteActionsBar({
         )}
       </div>
 
+      {/* Riga ricerca */}
+      <div className="relative">
+        <Search
+          size={14}
+          className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-base-mid"
+        />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(event) => onSearchChange(event.target.value)}
+          placeholder="Cerca tra le note..."
+          className="w-full rounded-full border border-base-mid/40 bg-transparent py-1.5 pr-8 pl-8 text-xs text-base-dark focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent dark:text-base-light"
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => onSearchChange("")}
+            aria-label="Cancella ricerca"
+            className="absolute top-1/2 right-2 flex h-5 w-5 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-base-mid hover:bg-base-mid/10"
+          >
+            <X size={12} />
+          </button>
+        )}
+      </div>
+
       {/* Riga opzioni: vista lista/griglia a sinistra, refresh a destra */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex overflow-hidden rounded-md border border-base-mid/40">
@@ -239,6 +272,22 @@ export function NoteActionsBar({
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              onViewFilterChange(viewFilter === "archived" ? "active" : "archived")
+            }
+            aria-pressed={viewFilter === "archived"}
+            className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${
+              viewFilter === "archived"
+                ? "border-accent bg-accent/10 text-accent"
+                : "border-base-mid/25 text-base-mid hover:bg-base-mid/10"
+            }`}
+          >
+            <Archive size={14} />
+            Archiviate
+          </button>
+
           <button
             type="button"
             onClick={onToggleSelectionMode}

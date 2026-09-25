@@ -45,11 +45,6 @@ class NoteImageController extends Controller
 
     private function authorizeNote(Request $request, Note $note): void
     {
-        $userId = $request->user()->id;
-
-        abort_unless(
-            $note->created_by === $userId || $note->shares()->where('user_id', $userId)->exists(),
-            403,
-        );
+        abort_unless($note->isAccessibleBy($request->user()->id), 403);
     }
 }

@@ -19,13 +19,16 @@
     "@tiptap/pm": "^3.31.3",
     "@tiptap/react": "^3.31.3",
     "@tiptap/starter-kit": "^3.31.3",
+    "@tiptap/suggestion": "^3.31.3",
+    "@types/turndown": "^5.0.6",
     "dompurify": "^3.4.16",
     "lucide-react": "^1.47.0",
     "react": "^19.2.8",
     "react-colorful": "^5.8.1",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.4",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "turndown": "^7.2.4"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",

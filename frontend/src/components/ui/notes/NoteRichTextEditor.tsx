@@ -1,6 +1,7 @@
 // =================================
 //  IMPORTS
 // =================================
+import { useEffect, useMemo, useRef } from "react";
 import {
   EditorContent,
   useEditor,
@@ -26,6 +27,8 @@ import {
   plainTextToHtml,
   RICH_TEXT_CONTENT_CLASS,
 } from "../../../utils/richText";
+import { createNoteLinkExtension } from "./noteLinkExtension";
+import type { NoteLinkSuggestionItem } from "./NoteLinkSuggestionList";
 
 // =================================
 //  CONSTS
@@ -77,14 +80,27 @@ export function NoteRichTextEditor({
   value,
   onChange,
   fieldClassName,
+  notesForLinking,
 }: {
   value: string;
   onChange: (html: string) => void;
   fieldClassName: string;
+  notesForLinking?: NoteLinkSuggestionItem[];
 }) {
   // =================================
   //  CONSTS
   // =================================
+  // L'estensione va creata una sola volta (l'editor non deve essere ricreato ad
+  // ogni render): la lista note aggiornata resta leggibile tramite questo ref.
+  const notesForLinkingRef = useRef<NoteLinkSuggestionItem[]>(notesForLinking ?? []);
+  useEffect(() => {
+    notesForLinkingRef.current = notesForLinking ?? [];
+  }, [notesForLinking]);
+  const noteLinkExtension = useMemo(
+    () => createNoteLinkExtension({ getNotes: () => notesForLinkingRef.current }),
+    [],
+  );
+
   // Il valore iniziale conta solo al mount: da lì in poi l'editor è la fonte di
   // verità (evita di reimpostare il contenuto e perdere la posizione del cursore
   // ad ogni onChange del genitore).
@@ -94,6 +110,7 @@ export function NoteRichTextEditor({
         link: { openOnClick: false, autolink: false },
       }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
+      noteLinkExtension,
     ],
     content: looksLikeHtml(value) ? value : plainTextToHtml(value),
     onUpdate: ({ editor: updatedEditor }) => {

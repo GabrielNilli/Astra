@@ -33,12 +33,16 @@ import { NoteCard } from "../ui/notes/NoteCard";
 import {
   createNote,
   deleteNote,
+  deleteNoteAttachment,
   deleteNoteImage,
+  uploadNoteAttachments,
   uploadNoteImages,
   listNotes,
   updateNote,
   type Note,
 } from "../../api/notes";
+import { noteMatchesQuery } from "../../utils/noteSearch";
+import { ApiError } from "../../api/client";
 import {
   createReminder,
   deleteReminder,
@@ -67,6 +71,7 @@ function SortableSectionGroup({
   onEdit,
   onChecklistToggle,
   onPinToggle,
+  onArchiveToggle,
   onReminderToggle,
   selectionMode,
   selectedIds,
@@ -85,6 +90,7 @@ function SortableSectionGroup({
   onEdit: (note: Note) => void;
   onChecklistToggle: (id: number, itemIndex: number) => void;
   onPinToggle: (id: number, pinned: boolean) => void;
+  onArchiveToggle: (id: number, archived: boolean) => void;
   onReminderToggle: (reminderId: number, done: boolean) => void;
   selectionMode: boolean;
   selectedIds: Set<number>;
@@ -175,6 +181,7 @@ function SortableSectionGroup({
         onEdit={onEdit}
         onChecklistToggle={onChecklistToggle}
         onPinToggle={onPinToggle}
+        onArchiveToggle={onArchiveToggle}
         onReminderToggle={onReminderToggle}
         selectionMode={selectionMode}
         isSelected={selectedIds.has(note.id)}
@@ -196,11 +203,14 @@ export function NotesPage() {
   const [sections, setSections] = useState<Section[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeSectionId, setActiveSectionId] = useState<number | null>(null);
+  const [viewFilter, setViewFilter] = useState<"active" | "archived">("active");
   const [viewMode, setViewMode] = useState<NoteViewMode>("grid");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Note[] | null>(null);
   // Stessa soglia della barra pillole: un tap sull'intestazione resta un tap,
   // il drag scatta solo spostando il puntatore di qualche pixel.
   const groupDragSensors = useSensors(
@@ -213,9 +223,24 @@ export function NotesPage() {
   function handleNoteRefresh() {
     if (!token) return;
     setIsLoading(true);
-    listNotes(token, activeSectionId ?? undefined)
+    listNotes(
+      token,
+      viewFilter === "archived" ? undefined : (activeSectionId ?? undefined),
+      { archived: viewFilter === "archived" },
+    )
       .then(setNotesList)
       .finally(() => setIsLoading(false));
+  }
+
+  function handleViewFilterChange(filter: "active" | "archived") {
+    setViewFilter(filter);
+    setActiveSectionId(null);
+  }
+
+  // Una nota agita dai risultati di ricerca può non essere nella notesList
+  // filtrata per sezione/archivio attualmente caricata.
+  function findNote(id: number): Note | undefined {
+    return notesList.find((n) => n.id === id) ?? searchResults?.find((n) => n.id === id);
   }
 
   function handleNoteDelete(id: number) {
@@ -225,7 +250,7 @@ export function NotesPage() {
 
   function handleNoteColorChange(id: number, color: string) {
     if (!token) return;
-    const note = notesList.find((n) => n.id === id);
+    const note = findNote(id);
     if (!note) return;
     updateNote(token, id, {
       title: note.title ?? undefined,
@@ -236,7 +261,7 @@ export function NotesPage() {
 
   function handleNoteSectionsChange(id: number, sectionIds: number[]) {
     if (!token) return;
-    const note = notesList.find((n) => n.id === id);
+    const note = findNote(id);
     if (!note) return;
     updateNote(token, id, {
       title: note.title ?? undefined,
@@ -255,7 +280,7 @@ export function NotesPage() {
 
   function handleNoteDuplicate(id: number) {
     if (!token) return;
-    const note = notesList.find((n) => n.id === id);
+    const note = findNote(id);
     if (!note) return;
     // Copia il contenuto e l'aspetto; condivisione, promemoria e pin restano solo all'originale
     createNote(token, {
@@ -271,7 +296,7 @@ export function NotesPage() {
 
   function handleNoteChecklistToggle(id: number, itemIndex: number) {
     if (!token) return;
-    const note = notesList.find((n) => n.id === id);
+    const note = findNote(id);
     if (!note || note.note_type !== "checklist" || !note.block_data || !("items" in note.block_data)) {
       return;
     }
@@ -288,12 +313,23 @@ export function NotesPage() {
 
   function handleNotePinToggle(id: number, pinned: boolean) {
     if (!token) return;
-    const note = notesList.find((n) => n.id === id);
+    const note = findNote(id);
     if (!note) return;
     updateNote(token, id, {
       title: note.title ?? undefined,
       content: note.content,
       is_pinned: pinned,
+    }).then(handleNoteRefresh);
+  }
+
+  function handleNoteArchiveToggle(id: number, archived: boolean) {
+    if (!token) return;
+    const note = findNote(id);
+    if (!note) return;
+    updateNote(token, id, {
+      title: note.title ?? undefined,
+      content: note.content,
+      is_archived: archived,
     }).then(handleNoteRefresh);
   }
 
@@ -339,7 +375,7 @@ export function NotesPage() {
 
     Promise.all(
       [...selectedIds].map((id) => {
-        const note = notesList.find((n) => n.id === id);
+        const note = findNote(id);
         if (!note) return Promise.resolve();
         return updateNote(token, id, {
           title: note.title ?? undefined,
@@ -350,12 +386,32 @@ export function NotesPage() {
     ).then(handleNoteRefresh);
   }
 
+  function handleBulkArchive(archived: boolean) {
+    if (!token || selectedIds.size === 0) return;
+
+    Promise.all(
+      [...selectedIds].map((id) => {
+        const note = findNote(id);
+        if (!note) return Promise.resolve();
+        return updateNote(token, id, {
+          title: note.title ?? undefined,
+          content: note.content,
+          is_archived: archived,
+        });
+      }),
+    ).then(() => {
+      setSelectionMode(false);
+      setSelectedIds(new Set());
+      handleNoteRefresh();
+    });
+  }
+
   function handleBulkAddSection(sectionId: number) {
     if (!token || selectedIds.size === 0) return;
 
     Promise.all(
       [...selectedIds].map((id) => {
-        const note = notesList.find((n) => n.id === id);
+        const note = findNote(id);
         if (!note) return Promise.resolve();
         const sectionIds = new Set(note.sections.map((section) => section.id));
         sectionIds.add(sectionId);
@@ -377,10 +433,17 @@ export function NotesPage() {
 
   function handleNoteEdit(
     id: number,
-    { note, reminder, newImages, removedImageIds }: NoteFormValues,
+    {
+      note,
+      reminder,
+      newImages,
+      removedImageIds,
+      newAttachments,
+      removedAttachmentIds,
+    }: NoteFormValues,
   ) {
     if (!token) return;
-    const existing = notesList.find((n) => n.id === id)?.reminders[0];
+    const existing = findNote(id)?.reminders[0];
 
     updateNote(token, id, note)
       .then(async () => {
@@ -389,6 +452,13 @@ export function NotesPage() {
         );
         if (newImages.length > 0) {
           await uploadNoteImages(token, id, newImages);
+        }
+
+        await Promise.all(
+          removedAttachmentIds.map((attachmentId) => deleteNoteAttachment(token, attachmentId)),
+        );
+        if (newAttachments.length > 0) {
+          await uploadNoteAttachments(token, id, newAttachments);
         }
 
         if (reminder && existing) {
@@ -405,6 +475,12 @@ export function NotesPage() {
       })
       .then(() => {
         setEditingNote(null);
+        handleNoteRefresh();
+      })
+      .catch((err) => {
+        window.alert(
+          err instanceof ApiError ? err.message : "Impossibile salvare la nota.",
+        );
         handleNoteRefresh();
       });
   }
@@ -442,12 +518,15 @@ export function NotesPage() {
     );
   }
 
-  function handleNoteCreate({ note, reminder, newImages }: NoteFormValues) {
+  function handleNoteCreate({ note, reminder, newImages, newAttachments }: NoteFormValues) {
     if (!token) return;
     createNote(token, note)
       .then(async (created) => {
         if (newImages.length > 0) {
           await uploadNoteImages(token, created.id, newImages);
+        }
+        if (newAttachments.length > 0) {
+          await uploadNoteAttachments(token, created.id, newAttachments);
         }
         if (reminder) {
           await createReminder(token, {
@@ -459,6 +538,12 @@ export function NotesPage() {
       })
       .then(() => {
         setShowCreateForm(false);
+        handleNoteRefresh();
+      })
+      .catch((err) => {
+        window.alert(
+          err instanceof ApiError ? err.message : "Impossibile creare la nota.",
+        );
         handleNoteRefresh();
       });
   }
@@ -483,17 +568,34 @@ export function NotesPage() {
         ].filter((group) => group.notes.length > 0)
       : [{ section: null, notes: notesList }];
 
+  const isSearching = searchQuery.trim().length > 0;
+  const displayGroups = isSearching
+    ? [{ section: null, notes: searchResults ?? [] }]
+    : groupedNotes;
+
   // =================================
   //  USE EFFECTS
   // =================================
   useEffect(() => {
     handleNoteRefresh();
-  }, [token, activeSectionId]);
+  }, [token, activeSectionId, viewFilter]);
 
   useEffect(() => {
     if (!token) return;
     listSections(token).then(setSections);
   }, [token]);
+
+  // La ricerca ignora sezione/archivio attivi: cerca sempre tra tutte le note non archiviate.
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (!query || !token) {
+      setSearchResults(null);
+      return;
+    }
+    listNotes(token).then((all) =>
+      setSearchResults(all.filter((note) => noteMatchesQuery(note, query))),
+    );
+  }, [searchQuery, token]);
 
   // Apre direttamente una nota quando si arriva da un link tipo /notes?note=123
   // (es. dal click su una notifica push di un reminder).
@@ -524,7 +626,10 @@ export function NotesPage() {
         <NoteActionsBar
           sections={sections}
           activeSectionId={activeSectionId}
-          onSectionChange={setActiveSectionId}
+          onSectionChange={(id) => {
+            setActiveSectionId(id);
+            setViewFilter("active");
+          }}
           onSectionCreate={handleSectionCreate}
           onSectionReorder={handleSectionReorder}
           viewMode={viewMode}
@@ -532,26 +637,42 @@ export function NotesPage() {
           onRefresh={handleNoteRefresh}
           selectionMode={selectionMode}
           onToggleSelectionMode={toggleSelectionMode}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          viewFilter={viewFilter}
+          onViewFilterChange={handleViewFilterChange}
         />
 
-        {isLoading === true ? (
+        {isSearching && searchResults === null ? (
+          <NoteLoadingState />
+        ) : isSearching && searchResults!.length === 0 ? (
+          <p className="py-10 text-center text-sm text-base-mid">
+            Nessuna nota trovata per "{searchQuery.trim()}".
+          </p>
+        ) : isLoading === true ? (
           <NoteLoadingState />
         ) : notesList.length === 0 ? (
-          <NoteEmptyState onCreate={() => setShowCreateForm(true)} />
+          viewFilter === "archived" ? (
+            <p className="py-10 text-center text-sm text-base-mid">
+              Nessuna nota archiviata.
+            </p>
+          ) : (
+            <NoteEmptyState onCreate={() => setShowCreateForm(true)} />
+          )
         ) : (
           <DndContext sensors={groupDragSensors} onDragEnd={handleGroupDragEnd}>
             <SortableContext
-              items={groupedNotes
+              items={displayGroups
                 .filter((group) => group.section !== null)
                 .map((group) => group.section!.id)}
               strategy={verticalListSortingStrategy}
             >
-              {groupedNotes.map(({ section, notes: groupNotes }) => (
+              {displayGroups.map(({ section, notes: groupNotes }) => (
                 <SortableSectionGroup
                   key={section?.id ?? "none"}
                   section={section}
                   notes={groupNotes}
-                  showHeader={groupedNotes.length > 1}
+                  showHeader={!isSearching && displayGroups.length > 1}
                   viewMode={viewMode}
                   sections={sections}
                   onDelete={handleNoteDelete}
@@ -561,6 +682,7 @@ export function NotesPage() {
                   onEdit={setEditingNote}
                   onChecklistToggle={handleNoteChecklistToggle}
                   onPinToggle={handleNotePinToggle}
+                  onArchiveToggle={handleNoteArchiveToggle}
                   onReminderToggle={handleReminderToggle}
                   selectionMode={selectionMode}
                   selectedIds={selectedIds}
@@ -577,9 +699,12 @@ export function NotesPage() {
         <NoteBulkActionsBar
           selectedCount={selectedIds.size}
           sections={sections}
+          isArchivedView={viewFilter === "archived"}
           onPin={() => handleBulkPin(true)}
           onUnpin={() => handleBulkPin(false)}
           onAddSection={handleBulkAddSection}
+          onArchive={() => handleBulkArchive(true)}
+          onUnarchive={() => handleBulkArchive(false)}
           onDelete={handleBulkDelete}
           onCancel={toggleSelectionMode}
         />

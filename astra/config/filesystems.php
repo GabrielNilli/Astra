@@ -35,6 +35,9 @@ return [
 
     'note_images_disk' => env('NOTE_IMAGES_DISK', 'public'),
 
+    // Stesso principio per gli allegati generici delle note (file non-immagine)
+    'note_attachments_disk' => env('NOTE_ATTACHMENTS_DISK', 'public'),
+
     // Stesso principio per le foto profilo: "s3_avatars" punta a un bucket dedicato
     'avatars_disk' => env('AVATARS_DISK', 'public'),
 

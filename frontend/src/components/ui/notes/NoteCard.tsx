@@ -3,6 +3,7 @@
 // =================================
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import {
   MoreHorizontal,
   Share2,
@@ -16,6 +17,8 @@ import {
   Copy,
   ChevronsDown,
   ChevronsUp,
+  Download,
+  File as FileIcon,
 } from "lucide-react";
 import type { Note } from "../../../api/notes";
 import type { Section } from "../../../api/sections";
@@ -31,6 +34,7 @@ import {
   sanitizeNoteHtml,
   stripHtmlToText,
 } from "../../../utils/richText";
+import { downloadTextFile, noteToMarkdown } from "../../../utils/exportNoteMarkdown";
 
 // =================================
 //  CONSTS
@@ -100,6 +104,7 @@ export function NoteCard({
   onEdit,
   onChecklistToggle,
   onPinToggle,
+  onArchiveToggle,
   onReminderToggle,
   selectionMode,
   isSelected,
@@ -115,6 +120,7 @@ export function NoteCard({
   onEdit: (note: Note) => void;
   onChecklistToggle: (id: number, itemIndex: number) => void;
   onPinToggle: (id: number, pinned: boolean) => void;
+  onArchiveToggle: (id: number, archived: boolean) => void;
   onReminderToggle: (reminderId: number, done: boolean) => void;
   selectionMode: boolean;
   isSelected: boolean;
@@ -125,6 +131,7 @@ export function NoteCard({
   //  CONSTS
   // =================================
   const { user } = useAuth();
+  const navigate = useNavigate();
   const color = note.color ?? FALLBACK_COLOR;
   const isOwnNote = note.created_by === user?.id;
   const formatDate = (value: string) =>
@@ -196,6 +203,25 @@ export function NoteCard({
   function handleDelete() {
     onDelete(note.id);
     closeMenu();
+  }
+
+  function handleArchiveToggle() {
+    onArchiveToggle(note.id, !note.is_archived);
+    closeMenu();
+  }
+
+  function handleExport() {
+    downloadTextFile(`${note.title || "nota"}.md`, noteToMarkdown(note));
+    closeMenu();
+  }
+
+  // I link "[[nota]]" nel contenuto puntano a /notes?note={id}: intercettati
+  // qui per navigare via router invece di ricaricare la pagina.
+  function handleContentClick(event: React.MouseEvent) {
+    const link = (event.target as HTMLElement).closest('a[href^="/notes?note="]');
+    if (!link) return;
+    event.preventDefault();
+    navigate(link.getAttribute("href")!);
   }
 
   function handleColorPick(newColor: string) {
@@ -361,6 +387,20 @@ export function NoteCard({
               </button>
               <button
                 type="button"
+                onClick={handleExport}
+                className="block w-full cursor-pointer px-3 py-2 text-left text-base-dark hover:bg-base-mid/10 dark:text-base-light"
+              >
+                Esporta
+              </button>
+              <button
+                type="button"
+                onClick={handleArchiveToggle}
+                className="block w-full cursor-pointer px-3 py-2 text-left text-base-dark hover:bg-base-mid/10 dark:text-base-light"
+              >
+                {note.is_archived ? "Disarchivia" : "Archivia"}
+              </button>
+              <button
+                type="button"
                 onClick={() => {
                   setDraftColor(color);
                   setShowColorPicker((value) => !value);
@@ -484,9 +524,29 @@ export function NoteCard({
           </div>
         )}
 
+        {note.attachments.length > 0 && (
+          <div className="mb-3 space-y-1.5">
+            {note.attachments.map((attachment) => (
+              <a
+                key={attachment.id}
+                href={attachment.url}
+                target="_blank"
+                rel="noreferrer"
+                download={attachment.filename}
+                className="flex items-center gap-2 rounded-md border border-base-mid/25 px-2 py-1.5 text-xs text-base-dark hover:bg-base-mid/10 dark:text-base-light"
+              >
+                <FileIcon size={14} className="shrink-0 text-base-mid" />
+                <span className="min-w-0 flex-1 truncate">{attachment.filename}</span>
+                <Download size={12} className="shrink-0 text-base-mid" />
+              </a>
+            ))}
+          </div>
+        )}
+
         {!isContentEmpty(note.content) &&
           (looksLikeHtml(note.content) ? (
             <div
+              onClick={handleContentClick}
               className={`text-sm text-base-dark dark:text-base-light ${RICH_TEXT_CONTENT_CLASS}`}
               dangerouslySetInnerHTML={{
                 __html: sanitizeNoteHtml(note.content),

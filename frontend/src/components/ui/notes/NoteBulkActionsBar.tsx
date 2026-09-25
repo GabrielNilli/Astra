@@ -2,7 +2,7 @@
 //  IMPORTS
 // =================================
 import { useState } from "react";
-import { Bookmark, BookmarkX, FolderPlus, Trash2, X } from "lucide-react";
+import { Archive, ArchiveRestore, Bookmark, BookmarkX, FolderPlus, Trash2, X } from "lucide-react";
 import type { Section } from "../../../api/sections";
 
 // =================================
@@ -11,17 +11,23 @@ import type { Section } from "../../../api/sections";
 export function NoteBulkActionsBar({
   selectedCount,
   sections,
+  isArchivedView,
   onPin,
   onUnpin,
   onAddSection,
+  onArchive,
+  onUnarchive,
   onDelete,
   onCancel,
 }: {
   selectedCount: number;
   sections: Section[];
+  isArchivedView: boolean;
   onPin: () => void;
   onUnpin: () => void;
   onAddSection: (sectionId: number) => void;
+  onArchive: () => void;
+  onUnarchive: () => void;
   onDelete: () => void;
   onCancel: () => void;
 }) {
@@ -71,6 +77,17 @@ export function NoteBulkActionsBar({
           className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-base-mid hover:bg-base-mid/10 disabled:cursor-not-allowed disabled:opacity-40"
         >
           <FolderPlus size={16} />
+        </button>
+
+        <button
+          type="button"
+          onClick={isArchivedView ? onUnarchive : onArchive}
+          disabled={disabled}
+          aria-label={isArchivedView ? "Disarchivia" : "Archivia"}
+          title={isArchivedView ? "Disarchivia" : "Archivia"}
+          className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-base-mid hover:bg-base-mid/10 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          {isArchivedView ? <ArchiveRestore size={16} /> : <Archive size={16} />}
         </button>
 
         <button

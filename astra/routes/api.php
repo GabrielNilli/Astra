@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChartEntryController;
+use App\Http\Controllers\NoteAttachmentController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\NoteImageController;
 use App\Http\Controllers\ProfileController;
@@ -32,6 +33,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('notes', NoteController::class)->except('show');
     Route::post('/notes/{note}/images', [NoteImageController::class, 'store']);
     Route::delete('/note-images/{noteImage}', [NoteImageController::class, 'destroy']);
+    Route::post('/notes/{note}/attachments', [NoteAttachmentController::class, 'store']);
+    Route::delete('/note-attachments/{noteAttachment}', [NoteAttachmentController::class, 'destroy']);
     Route::patch('/sections/reorder', [SectionController::class, 'reorder']);
     Route::apiResource('sections', SectionController::class)->only(['index', 'store', 'destroy']);
     Route::apiResource('reminders', ReminderController::class)->except('show');

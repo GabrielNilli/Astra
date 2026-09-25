@@ -1,7 +1,8 @@
 // =================================
 //  IMPORTS
 // =================================
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { FileText } from "lucide-react";
 import type { Section } from "../../../api/sections";
 import type {
   ChecklistItem,
@@ -10,12 +11,15 @@ import type {
   NoteReminderInput,
   NoteType,
 } from "../../../api/notes";
+import { listNotes } from "../../../api/notes";
 import type { ReminderRecurrence } from "../../../api/reminders";
 import { COLOR_PRESETS } from "../../../constants/colors";
 import type { UserSummary } from "../../../api/users";
+import { useAuth } from "../../../context/AuthContext";
 import { NoteSharePicker } from "./NoteSharePicker";
 import { NoteIconPicker } from "./NoteIconPicker";
 import { NoteImagesField } from "./NoteImagesField";
+import { NoteAttachmentsField } from "./NoteAttachmentsField";
 import { NoteTypeSelector } from "./NoteTypeSelector";
 import { ChecklistEditor } from "./ChecklistEditor";
 import { CodeSnippetEditor } from "./CodeSnippetEditor";
@@ -33,6 +37,8 @@ export type NoteFormValues = {
   reminder: NoteReminderInput | null;
   newImages: File[];
   removedImageIds: number[];
+  newAttachments: File[];
+  removedAttachmentIds: number[];
 };
 
 // =================================
@@ -78,8 +84,10 @@ export function NoteFormModal({
   // =================================
   //  CONSTS
   // =================================
+  const { token } = useAuth();
   const isEditing = note !== undefined;
   const existingReminder = note?.reminders[0];
+  const [allNotes, setAllNotes] = useState<Note[]>([]);
 
   const [title, setTitle] = useState(note?.title ?? "");
   const [content, setContent] = useState(note?.content ?? "");
@@ -122,10 +130,35 @@ export function NoteFormModal({
   );
   const [newImages, setNewImages] = useState<File[]>([]);
   const [removedImageIds, setRemovedImageIds] = useState<number[]>([]);
+  const [newAttachments, setNewAttachments] = useState<File[]>([]);
+  const [removedAttachmentIds, setRemovedAttachmentIds] = useState<number[]>([]);
   const [isShared, setIsShared] = useState(Boolean(note?.is_shared));
   const [sharedWith, setSharedWith] = useState<UserSummary[]>(
     note?.shared_with_users ?? [],
   );
+
+  // Note collegabili con "[[" nell'editor: caricate a parte, indipendenti dal
+  // filtro sezione/archivio attivo nella pagina.
+  const notesForLinking = allNotes
+    .filter((candidate) => candidate.id !== note?.id)
+    .map((candidate) => ({ id: candidate.id, title: candidate.title || "Senza titolo" }));
+
+  // Note che linkano quella corrente (backlink), calcolate al volo sullo stesso elenco.
+  const backlinks = note
+    ? allNotes.filter(
+        (candidate) =>
+          candidate.id !== note.id &&
+          candidate.content.includes(`/notes?note=${note.id}`),
+      )
+    : [];
+
+  // =================================
+  //  USE EFFECTS
+  // =================================
+  useEffect(() => {
+    if (!token) return;
+    listNotes(token).then(setAllNotes);
+  }, [token]);
 
   // =================================
   //  FUNCTIONS
@@ -168,6 +201,8 @@ export function NoteFormModal({
         : null,
       newImages,
       removedImageIds,
+      newAttachments,
+      removedAttachmentIds,
     });
   }
 
@@ -202,6 +237,7 @@ export function NoteFormModal({
             value={content}
             onChange={setContent}
             fieldClassName={FIELD_CLASS}
+            notesForLinking={notesForLinking}
           />
 
           {/* Tipo di nota */}
@@ -253,6 +289,39 @@ export function NoteFormModal({
               onNewFilesChange={setNewImages}
             />
           </div>
+
+          {/* Allegati */}
+          <div>
+            <p className="mb-1 text-xs font-medium text-base-mid">Allegati</p>
+            <NoteAttachmentsField
+              existing={(note?.attachments ?? []).filter(
+                (attachment) => !removedAttachmentIds.includes(attachment.id),
+              )}
+              newFiles={newAttachments}
+              onRemoveExisting={(id) =>
+                setRemovedAttachmentIds((prev) => [...prev, id])
+              }
+              onNewFilesChange={setNewAttachments}
+            />
+          </div>
+
+          {/* Note collegate (backlink) */}
+          {isEditing && backlinks.length > 0 && (
+            <div>
+              <p className="mb-1 text-xs font-medium text-base-mid">Collegata da</p>
+              <div className="space-y-1">
+                {backlinks.map((backlink) => (
+                  <div
+                    key={backlink.id}
+                    className="flex items-center gap-1.5 rounded-md border border-base-mid/25 px-2 py-1.5 text-xs text-base-dark dark:text-base-light"
+                  >
+                    <FileText size={12} className="shrink-0 text-base-mid" />
+                    <span className="truncate">{backlink.title || "Senza titolo"}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Colonna laterale: metadati e impostazioni */}

@@ -19,6 +19,15 @@ export type NoteImage = {
   url: string;
 };
 
+export type NoteAttachment = {
+  id: number;
+  note_id: number;
+  filename: string;
+  mime_type: string | null;
+  size: number;
+  url: string;
+};
+
 export type NoteType = "plain" | "checklist" | "code" | "table";
 
 export type ChecklistItem = { text: string; done: boolean };
@@ -41,6 +50,7 @@ export type Note = {
   is_shared: boolean;
   has_reminder: boolean;
   is_pinned: boolean;
+  is_archived: boolean;
   created_at: string;
   updated_at: string;
   sections: { id: number; name: string }[];
@@ -48,6 +58,7 @@ export type Note = {
   shared_with_users: UserSummary[];
   reminders: NoteReminder[];
   images: NoteImage[];
+  attachments: NoteAttachment[];
 };
 
 // Promemoria da creare insieme alla nota (non fa parte del payload dell'API note)
@@ -68,13 +79,21 @@ export type NotePayload = {
   is_shared?: boolean;
   shared_with?: number[];
   is_pinned?: boolean;
+  is_archived?: boolean;
 };
 
 // =================================
 //  FUNCTIONS
 // =================================
-export function listNotes(token: string, sectionId?: number) {
-  const query = sectionId ? `?section_id=${sectionId}` : "";
+export function listNotes(
+  token: string,
+  sectionId?: number,
+  options?: { archived?: boolean },
+) {
+  const params = new URLSearchParams();
+  if (sectionId) params.set("section_id", String(sectionId));
+  if (options?.archived) params.set("archived", "1");
+  const query = params.toString() ? `?${params.toString()}` : "";
   return apiFetch<Note[]>(`/notes${query}`, { token });
 }
 
@@ -106,4 +125,21 @@ export function uploadNoteImages(token: string, noteId: number, files: File[]) {
 
 export function deleteNoteImage(token: string, imageId: number) {
   return apiFetch<null>(`/note-images/${imageId}`, { method: "DELETE", token });
+}
+
+export function uploadNoteAttachments(token: string, noteId: number, files: File[]) {
+  const body = new FormData();
+  files.forEach((file) => body.append("attachments[]", file));
+  return apiFetch<NoteAttachment[]>(`/notes/${noteId}/attachments`, {
+    method: "POST",
+    body,
+    token,
+  });
+}
+
+export function deleteNoteAttachment(token: string, attachmentId: number) {
+  return apiFetch<null>(`/note-attachments/${attachmentId}`, {
+    method: "DELETE",
+    token,
+  });
 }
