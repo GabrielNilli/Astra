@@ -9,7 +9,6 @@ import type {
   NotePayload,
   NoteReminderInput,
   NoteType,
-  StatRow,
 } from "../../../api/notes";
 import type { ReminderRecurrence } from "../../../api/reminders";
 import { COLOR_PRESETS } from "../../../constants/colors";
@@ -20,7 +19,7 @@ import { NoteImagesField } from "./NoteImagesField";
 import { NoteTypeSelector } from "./NoteTypeSelector";
 import { ChecklistEditor } from "./ChecklistEditor";
 import { CodeSnippetEditor } from "./CodeSnippetEditor";
-import { StatRowsEditor } from "./StatRowsEditor";
+import { TableEditor } from "./TableEditor";
 import { NoteRichTextEditor } from "./NoteRichTextEditor";
 import GenericButton from "../GenericButton";
 import { ColorPicker } from "../ColorPicker";
@@ -100,8 +99,13 @@ export function NoteFormModal({
       ? { language: note.block_data.language, code: note.block_data.code }
       : { language: "", code: "" },
   );
-  const [statRows, setStatRows] = useState<StatRow[]>(
-    note?.note_type === "stats" && note.block_data && "rows" in note.block_data
+  const [tableHeaders, setTableHeaders] = useState<string[]>(
+    note?.note_type === "table" && note.block_data && "headers" in note.block_data
+      ? note.block_data.headers
+      : [],
+  );
+  const [tableRows, setTableRows] = useState<string[][]>(
+    note?.note_type === "table" && note.block_data && "rows" in note.block_data
       ? note.block_data.rows
       : [],
   );
@@ -138,8 +142,8 @@ export function NoteFormModal({
         ? { items: checklistItems }
         : noteType === "code"
           ? codeSnippet
-          : noteType === "stats"
-            ? { rows: statRows }
+          : noteType === "table"
+            ? { headers: tableHeaders, rows: tableRows }
             : null;
 
     onSubmit({
@@ -178,7 +182,7 @@ export function NoteFormModal({
       <form
         onClick={(event) => event.stopPropagation()}
         onSubmit={handleSubmit}
-        className="max-h-full w-full max-w-sm space-y-3 overflow-y-auto rounded-2xl border border-base-mid/25 bg-white p-4 dark:bg-base-dark md:max-w-3xl md:space-y-0 md:grid md:grid-cols-[minmax(0,1fr)_260px] md:items-start md:gap-x-6 md:gap-y-4"
+        className="max-h-[90vh] w-full max-w-sm space-y-3 overflow-y-auto rounded-2xl border border-base-mid/25 bg-white p-4 dark:bg-base-dark md:max-w-3xl md:space-y-0 md:grid md:grid-cols-[minmax(0,1fr)_280px] md:items-start md:gap-x-8 md:gap-y-4 md:p-6 lg:max-w-5xl xl:max-w-6xl"
       >
         <h2 className="text-lg font-semibold text-base-dark dark:text-base-light md:col-span-2">
           {isEditing ? "Modifica nota" : "Nuova nota"}
@@ -223,10 +227,14 @@ export function NoteFormModal({
             />
           )}
 
-          {noteType === "stats" && (
-            <StatRowsEditor
-              rows={statRows}
-              onChange={setStatRows}
+          {noteType === "table" && (
+            <TableEditor
+              headers={tableHeaders}
+              rows={tableRows}
+              onChange={(value) => {
+                setTableHeaders(value.headers);
+                setTableRows(value.rows);
+              }}
               fieldClassName={FIELD_CLASS}
             />
           )}

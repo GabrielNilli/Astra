@@ -19,15 +19,15 @@ export type NoteImage = {
   url: string;
 };
 
-export type NoteType = "plain" | "checklist" | "code" | "stats";
+export type NoteType = "plain" | "checklist" | "code" | "table";
 
 export type ChecklistItem = { text: string; done: boolean };
-export type StatRow = { label: string; value: string };
+export type NoteTable = { headers: string[]; rows: string[][] };
 
 export type NoteBlockData =
   | { items: ChecklistItem[] }
   | { language: string; code: string }
-  | { rows: StatRow[] };
+  | NoteTable;
 
 export type Note = {
   id: number;

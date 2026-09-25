@@ -17,16 +17,18 @@ class NoteController extends Controller
     ];
 
     private const BLOCK_DATA_RULES = [
-        'note_type' => 'sometimes|in:plain,checklist,code,stats',
+        'note_type' => 'sometimes|in:plain,checklist,code,table',
         'block_data' => 'sometimes|nullable|array',
         'block_data.items' => 'required_if:note_type,checklist|array',
         'block_data.items.*.text' => 'required_with:block_data.items|string|max:255',
         'block_data.items.*.done' => 'sometimes|boolean',
         'block_data.language' => 'nullable|string|max:32',
         'block_data.code' => 'required_if:note_type,code|string',
-        'block_data.rows' => 'required_if:note_type,stats|array',
-        'block_data.rows.*.label' => 'required_with:block_data.rows|string|max:64',
-        'block_data.rows.*.value' => 'required_with:block_data.rows|string|max:128',
+        'block_data.headers' => 'required_if:note_type,table|array|min:1',
+        'block_data.headers.*' => 'nullable|string|max:64',
+        'block_data.rows' => 'required_if:note_type,table|array',
+        'block_data.rows.*' => 'array',
+        'block_data.rows.*.*' => 'nullable|string|max:255',
         'is_pinned' => 'sometimes|boolean',
     ];
 

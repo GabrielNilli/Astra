@@ -12,7 +12,7 @@ import {
   Bookmark,
   ListChecks,
   Code2,
-  BarChart3,
+  Table2,
   Copy,
 } from "lucide-react";
 import type { Note } from "../../../api/notes";
@@ -64,7 +64,7 @@ const TYPE_BADGES: Record<
 > = {
   checklist: { label: "Checklist", icon: ListChecks, color: "#10b981" },
   code: { label: "Snippet", icon: Code2, color: "#4f46e5" },
-  stats: { label: "Statistiche", icon: BarChart3, color: "#d97706" },
+  table: { label: "Tabella", icon: Table2, color: "#d97706" },
 };
 
 const SHARED_BADGE = { label: "Condivisa", icon: Share2, color: "#33C7DC" };
@@ -577,23 +577,40 @@ export function NoteCard({
             </div>
           )}
 
-        {note.note_type === "stats" &&
+        {note.note_type === "table" &&
           note.block_data &&
-          "rows" in note.block_data && (
+          "headers" in note.block_data && (
             <div
-              className={`grid grid-cols-2 gap-1.5 ${!isContentEmpty(note.content) ? "mt-3" : ""}`}
+              className={`overflow-x-auto rounded-lg border border-black/10 dark:border-white/10 ${!isContentEmpty(note.content) ? "mt-3" : ""}`}
             >
-              {note.block_data.rows.map((row, index) => (
-                <div
-                  key={index}
-                  className="rounded-lg bg-black/5 px-2.5 py-1.5 dark:bg-white/5"
-                >
-                  <p className="text-[11px] text-base-mid">{row.label}</p>
-                  <p className="text-sm font-semibold text-base-dark dark:text-base-light">
-                    {row.value}
-                  </p>
-                </div>
-              ))}
+              <table className="w-full border-collapse text-xs">
+                <thead>
+                  <tr className="bg-black/5 dark:bg-white/5">
+                    {note.block_data.headers.map((header, index) => (
+                      <th
+                        key={index}
+                        className="border-b border-black/10 px-2.5 py-1.5 text-left font-semibold text-base-dark dark:border-white/10 dark:text-base-light"
+                      >
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {note.block_data.rows.map((row, rowIndex) => (
+                    <tr key={rowIndex}>
+                      {row.map((cell, cellIndex) => (
+                        <td
+                          key={cellIndex}
+                          className="border-b border-black/5 px-2.5 py-1.5 text-base-dark dark:border-white/5 dark:text-base-light"
+                        >
+                          {cell}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
 

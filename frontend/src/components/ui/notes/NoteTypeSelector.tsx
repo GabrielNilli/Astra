@@ -1,7 +1,7 @@
 // =================================
 //  IMPORTS
 // =================================
-import { AlignLeft, BarChart3, Code2, ListChecks } from "lucide-react";
+import { AlignLeft, Code2, ListChecks, Table2 } from "lucide-react";
 import type { NoteType } from "../../../api/notes";
 
 // =================================
@@ -11,7 +11,7 @@ const TYPE_OPTIONS: { value: NoteType; label: string; icon: typeof AlignLeft }[]
   { value: "plain", label: "Testo", icon: AlignLeft },
   { value: "checklist", label: "Checklist", icon: ListChecks },
   { value: "code", label: "Codice", icon: Code2 },
-  { value: "stats", label: "Statistiche", icon: BarChart3 },
+  { value: "table", label: "Tabella", icon: Table2 },
 ];
 
 // =================================
