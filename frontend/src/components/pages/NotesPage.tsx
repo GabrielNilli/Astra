@@ -94,6 +94,12 @@ function SortableSectionGroup({
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
     useSortable({ id: section?.id ?? "none", disabled: section === null });
 
+  // Le note con tabella vengono renderizzate a parte (fuori dalla griglia a
+  // colonne), che altrimenti forzerebbe anche loro alla larghezza fissa della
+  // colonna costringendo la tabella a scrollare.
+  const tableNotes = notes.filter((note) => note.note_type === "table");
+  const otherNotes = notes.filter((note) => note.note_type !== "table");
+
   return (
     <section
       ref={section ? setNodeRef : undefined}
@@ -126,36 +132,57 @@ function SortableSectionGroup({
         </div>
       )}
 
-      <div
-        className={
-          viewMode === "grid"
-            ? "columns-2 gap-3 md:columns-3 xl:columns-4 2xl:columns-5"
-            : "columns-1 gap-3 lg:columns-2"
-        }
-      >
-        {notes.map((note) => (
-          <div key={note.id} className="mb-3 break-inside-avoid">
-            <NoteCard
-              note={note}
-              sections={sections}
-              onDelete={onDelete}
-              onColorChange={onColorChange}
-              onSectionsChange={onSectionsChange}
-              onDuplicate={onDuplicate}
-              onEdit={onEdit}
-              onChecklistToggle={onChecklistToggle}
-              onPinToggle={onPinToggle}
-              onReminderToggle={onReminderToggle}
-              selectionMode={selectionMode}
-              isSelected={selectedIds.has(note.id)}
-              onToggleSelect={onToggleSelect}
-              onLongPressSelect={onLongPressSelect}
-            />
-          </div>
-        ))}
-      </div>
+      {tableNotes.length > 0 && (
+        <div className="mb-3 space-y-3">
+          {tableNotes.map((note) => (
+            <div key={note.id} className="w-fit max-w-full">
+              {renderCard(note)}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {otherNotes.length > 0 && (
+        <div
+          className={
+            viewMode === "grid"
+              ? "columns-2 gap-3 md:columns-3 xl:columns-4 2xl:columns-5"
+              : "columns-1 gap-3 lg:columns-2"
+          }
+        >
+          {otherNotes.map((note) => (
+            <div key={note.id} className="mb-3 break-inside-avoid">
+              {renderCard(note)}
+            </div>
+          ))}
+        </div>
+      )}
     </section>
   );
+
+  // Le note con tabella escono dalla griglia a colonne (che forza tutte le
+  // card alla stessa larghezza): così possono allargarsi fino alla larghezza
+  // naturale della tabella invece di scrollare dentro una colonna stretta.
+  function renderCard(note: Note) {
+    return (
+      <NoteCard
+        note={note}
+        sections={sections}
+        onDelete={onDelete}
+        onColorChange={onColorChange}
+        onSectionsChange={onSectionsChange}
+        onDuplicate={onDuplicate}
+        onEdit={onEdit}
+        onChecklistToggle={onChecklistToggle}
+        onPinToggle={onPinToggle}
+        onReminderToggle={onReminderToggle}
+        selectionMode={selectionMode}
+        isSelected={selectedIds.has(note.id)}
+        onToggleSelect={onToggleSelect}
+        onLongPressSelect={onLongPressSelect}
+      />
+    );
+  }
 }
 
 export function NotesPage() {

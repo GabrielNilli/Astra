@@ -14,6 +14,8 @@ import {
   Code2,
   Table2,
   Copy,
+  ChevronsDown,
+  ChevronsUp,
 } from "lucide-react";
 import type { Note } from "../../../api/notes";
 import type { Section } from "../../../api/sections";
@@ -34,6 +36,7 @@ import {
 //  CONSTS
 // =================================
 const FALLBACK_COLOR = "#fde68a";
+const TABLE_ROWS_STEP = 5;
 
 // In dark mode lo sfondo pagina usa lo stesso base-dark: senza schiarirlo la card sparisce nel bg
 const CARD_SURFACE =
@@ -144,6 +147,7 @@ export function NoteCard({
   const [showSectionPicker, setShowSectionPicker] = useState(false);
   const [draftSectionIds, setDraftSectionIds] = useState<number[]>([]);
   const [draftColor, setDraftColor] = useState(color);
+  const [visibleTableRows, setVisibleTableRows] = useState(TABLE_ROWS_STEP);
 
   // =================================
   //  FUNCTIONS
@@ -580,37 +584,86 @@ export function NoteCard({
         {note.note_type === "table" &&
           note.block_data &&
           "headers" in note.block_data && (
-            <div
-              className={`overflow-x-auto rounded-lg border border-black/10 dark:border-white/10 ${!isContentEmpty(note.content) ? "mt-3" : ""}`}
-            >
-              <table className="w-full border-collapse text-xs">
-                <thead>
-                  <tr className="bg-black/5 dark:bg-white/5">
-                    {note.block_data.headers.map((header, index) => (
-                      <th
-                        key={index}
-                        className="border-b border-black/10 px-2.5 py-1.5 text-left font-semibold text-base-dark dark:border-white/10 dark:text-base-light"
-                      >
-                        {header}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {note.block_data.rows.map((row, rowIndex) => (
-                    <tr key={rowIndex}>
-                      {row.map((cell, cellIndex) => (
-                        <td
-                          key={cellIndex}
-                          className="border-b border-black/5 px-2.5 py-1.5 text-base-dark dark:border-white/5 dark:text-base-light"
+            <div className={!isContentEmpty(note.content) ? "mt-3" : ""}>
+              <div className="overflow-x-auto rounded-lg border border-black/10 dark:border-white/10">
+                <table className="w-full border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-black/5 dark:bg-white/5">
+                      {note.block_data.headers.map((header, index) => (
+                        <th
+                          key={index}
+                          className="border-b border-black/10 px-2.5 py-1.5 text-left font-semibold text-base-dark dark:border-white/10 dark:text-base-light"
                         >
-                          {cell}
-                        </td>
+                          {header}
+                        </th>
                       ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {note.block_data.rows
+                      .slice(0, visibleTableRows)
+                      .map((row, rowIndex) => (
+                        <tr key={rowIndex}>
+                          {row.map((cell, cellIndex) => (
+                            <td
+                              key={cellIndex}
+                              className="border-b border-black/5 px-2.5 py-1.5 text-base-dark dark:border-white/5 dark:text-base-light"
+                            >
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {(() => {
+                const totalRows = note.block_data.rows.length;
+                const remaining = totalRows - visibleTableRows;
+
+                if (remaining > 0) {
+                  return (
+                    <div className="mt-1.5 flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setVisibleTableRows(
+                            (value) => value + TABLE_ROWS_STEP,
+                          )
+                        }
+                        className="cursor-pointer rounded-full bg-black/5 px-2 py-0.5 text-[11px] font-medium text-base-mid hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10"
+                      >
+                        +{Math.min(TABLE_ROWS_STEP, remaining)}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setVisibleTableRows(totalRows)}
+                        aria-label="Mostra tutta la tabella"
+                        title="Mostra tutta la tabella"
+                        className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full text-base-mid hover:bg-base-mid/10"
+                      >
+                        <ChevronsDown size={14} />
+                      </button>
+                    </div>
+                  );
+                }
+
+                if (totalRows > TABLE_ROWS_STEP) {
+                  return (
+                    <button
+                      type="button"
+                      onClick={() => setVisibleTableRows(TABLE_ROWS_STEP)}
+                      className="mt-1.5 flex w-full cursor-pointer items-center justify-end gap-1 text-[11px] font-medium text-base-mid hover:text-base-dark dark:hover:text-base-light"
+                    >
+                      <ChevronsUp size={14} />
+                      Mostra meno
+                    </button>
+                  );
+                }
+
+                return null;
+              })()}
             </div>
           )}
 
