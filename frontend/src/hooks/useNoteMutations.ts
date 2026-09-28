@@ -139,6 +139,17 @@ export function useNoteMutations({
     }).then(handleNoteRefresh);
   }
 
+  function handleNoteFavoriteToggle(id: number, favorite: boolean) {
+    if (!token) return;
+    const note = findNote(id);
+    if (!note) return;
+    updateNote(token, id, {
+      title: note.title ?? undefined,
+      content: note.content,
+      is_favorite: favorite,
+    }).then(handleNoteRefresh);
+  }
+
   function handleBulkDelete() {
     if (!token || selectedIds.size === 0) return;
     if (!window.confirm(`Eliminare ${selectedIds.size} note selezionate?`)) return;
@@ -299,6 +310,7 @@ export function useNoteMutations({
     handleNoteChecklistToggle,
     handleNotePinToggle,
     handleNoteArchiveToggle,
+    handleNoteFavoriteToggle,
     handleBulkDelete,
     handleBulkPin,
     handleBulkArchive,

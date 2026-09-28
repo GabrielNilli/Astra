@@ -26,6 +26,7 @@ export function SortableSectionGroup({
   onChecklistToggle,
   onPinToggle,
   onArchiveToggle,
+  onFavoriteToggle,
   onReminderToggle,
   selectionMode,
   selectedIds,
@@ -48,6 +49,7 @@ export function SortableSectionGroup({
   onChecklistToggle: (id: number, itemIndex: number) => void;
   onPinToggle: (id: number, pinned: boolean) => void;
   onArchiveToggle: (id: number, archived: boolean) => void;
+  onFavoriteToggle: (id: number, favorite: boolean) => void;
   onReminderToggle: (reminderId: number, done: boolean) => void;
   selectionMode: boolean;
   selectedIds: Set<number>;
@@ -87,6 +89,7 @@ export function SortableSectionGroup({
         onChecklistToggle={onChecklistToggle}
         onPinToggle={onPinToggle}
         onArchiveToggle={onArchiveToggle}
+        onFavoriteToggle={onFavoriteToggle}
         onReminderToggle={onReminderToggle}
         selectionMode={selectionMode}
         isSelected={selectedIds.has(note.id)}

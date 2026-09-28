@@ -19,6 +19,7 @@ import {
   ChevronsUp,
   Download,
   File as FileIcon,
+  Star,
 } from "lucide-react";
 import type { Note } from "../../../api/notes";
 import type { Section } from "../../../api/sections";
@@ -105,6 +106,7 @@ export function NoteCard({
   onChecklistToggle,
   onPinToggle,
   onArchiveToggle,
+  onFavoriteToggle,
   onReminderToggle,
   selectionMode,
   isSelected,
@@ -121,6 +123,7 @@ export function NoteCard({
   onChecklistToggle: (id: number, itemIndex: number) => void;
   onPinToggle: (id: number, pinned: boolean) => void;
   onArchiveToggle: (id: number, archived: boolean) => void;
+  onFavoriteToggle: (id: number, favorite: boolean) => void;
   onReminderToggle: (reminderId: number, done: boolean) => void;
   selectionMode: boolean;
   isSelected: boolean;
@@ -210,6 +213,11 @@ export function NoteCard({
     closeMenu();
   }
 
+  function handleFavoriteToggle() {
+    onFavoriteToggle(note.id, !note.is_favorite);
+    closeMenu();
+  }
+
   function handleExport() {
     downloadTextFile(`${note.title || "nota"}.md`, noteToMarkdown(note));
     closeMenu();
@@ -290,7 +298,7 @@ export function NoteCard({
       <div
         className={`relative rounded-t-2xl px-4 pt-3.5 pb-1 ${CARD_SURFACE}`}
       >
-        <div className="flex min-h-5 items-center gap-2 pr-20">
+        <div className="flex min-h-5 items-center gap-2 pr-28">
           {badge ? (
             <div
               className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold"
@@ -336,6 +344,20 @@ export function NoteCard({
           </div>
         ) : (
           <>
+            <button
+              type="button"
+              onClick={handleFavoriteToggle}
+              aria-label={
+                note.is_favorite ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"
+              }
+              className="absolute top-2 right-[4.5rem] flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-base-mid/10 text-base-mid hover:bg-base-mid/20"
+            >
+              <Star
+                size={18}
+                className={note.is_favorite ? "fill-amber-400 text-amber-400" : ""}
+              />
+            </button>
+
             <button
               type="button"
               onClick={() => onPinToggle(note.id, !note.is_pinned)}

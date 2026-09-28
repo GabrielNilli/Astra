@@ -29,6 +29,9 @@ export type Chart = {
   name: string;
   type: ChartType;
   is_shared: boolean;
+  is_favorite: boolean;
+  created_at: string;
+  updated_at: string;
   author: UserSummary;
   shared_with_users: UserSummary[];
   entries: ChartEntry[];
@@ -39,6 +42,7 @@ export type ChartPayload = {
   type: ChartType;
   is_shared?: boolean;
   shared_with?: number[];
+  is_favorite?: boolean;
 };
 
 export type ChartEntryPayload = {

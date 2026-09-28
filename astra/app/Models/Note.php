@@ -22,6 +22,7 @@ class Note extends Model
         'is_shared',
         'has_reminder',
         'is_pinned',
+        'is_favorite',
         'archived_at',
     ];
 
@@ -29,6 +30,7 @@ class Note extends Model
         'is_shared' => 'boolean',
         'has_reminder' => 'boolean',
         'is_pinned' => 'boolean',
+        'is_favorite' => 'boolean',
         'block_data' => 'array',
         'archived_at' => 'datetime',
     ];

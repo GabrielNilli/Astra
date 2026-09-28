@@ -13,16 +13,52 @@ import GenericButton from "../GenericButton";
 const FIELD_CLASS =
   "w-full rounded-md border border-base-mid/40 bg-white px-3 py-2 text-sm text-base-dark focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent dark:bg-base-dark dark:text-base-light";
 
-const TYPE_OPTIONS: { value: ChartType; label: string }[] = [
-  { value: "line", label: "Linee" },
-  { value: "area", label: "Area" },
-  { value: "bar", label: "Barre" },
-  { value: "pie", label: "Torta" },
-  { value: "doughnut", label: "Anello" },
-  { value: "polar", label: "Polare" },
-  { value: "radar", label: "Radar" },
-  { value: "scatter", label: "Dispersione" },
-  { value: "bubble", label: "Bolle" },
+const TYPE_OPTIONS: { value: ChartType; label: string; description: string }[] = [
+  {
+    value: "line",
+    label: "Linee",
+    description: "Ideale per l'andamento di un valore nel tempo, es. peso o risparmi.",
+  },
+  {
+    value: "area",
+    label: "Area",
+    description: "Come le linee, ma mette in risalto il volume accumulato nel tempo.",
+  },
+  {
+    value: "bar",
+    label: "Barre",
+    description: "Ottimo per confrontare valori tra categorie diverse, es. spese per categoria.",
+  },
+  {
+    value: "pie",
+    label: "Torta",
+    description: "Mostra come un totale si divide in parti, es. quota di spesa per categoria.",
+  },
+  {
+    value: "doughnut",
+    label: "Anello",
+    description: "Come la torta, ma con più spazio al centro per una cifra o un'icona.",
+  },
+  {
+    value: "polar",
+    label: "Polare",
+    description: "Confronta più categorie mantenendo visibile anche la loro grandezza relativa.",
+  },
+  {
+    value: "radar",
+    label: "Radar",
+    description: "Confronta più metriche diverse sullo stesso soggetto, es. valutazioni multiple.",
+  },
+  {
+    value: "scatter",
+    label: "Dispersione",
+    description: "Mostra la relazione tra due valori numerici indipendenti.",
+  },
+  {
+    value: "bubble",
+    label: "Bolle",
+    description: "Come la dispersione, ma con una terza dimensione data dalla grandezza dei punti.",
+  },
 ];
 
 // =================================
@@ -43,6 +79,7 @@ export function ChartFormModal({
   const isEditing = chart !== undefined;
   const [name, setName] = useState(chart?.name ?? "");
   const [type, setType] = useState<ChartType>(chart?.type ?? "line");
+  const selectedTypeDescription = TYPE_OPTIONS.find((option) => option.value === type)?.description;
   const [isShared, setIsShared] = useState(Boolean(chart?.is_shared));
   const [sharedWith, setSharedWith] = useState<UserSummary[]>(
     chart?.shared_with_users ?? [],
@@ -89,17 +126,22 @@ export function ChartFormModal({
           autoFocus
         />
 
-        <select
-          value={type}
-          onChange={(event) => setType(event.target.value as ChartType)}
-          className={FIELD_CLASS}
-        >
-          {TYPE_OPTIONS.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        <div>
+          <select
+            value={type}
+            onChange={(event) => setType(event.target.value as ChartType)}
+            className={FIELD_CLASS}
+          >
+            {TYPE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          {selectedTypeDescription && (
+            <p className="mt-1 text-xs text-base-mid">{selectedTypeDescription}</p>
+          )}
+        </div>
 
         <div className="space-y-2">
           <label className="flex cursor-pointer items-center gap-2 text-sm text-base-dark dark:text-base-light">

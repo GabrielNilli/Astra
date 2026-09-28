@@ -62,6 +62,17 @@ export function ChartsPage() {
     });
   }
 
+  function handleFavoriteToggle(chart: Chart, favorite: boolean) {
+    if (!token) return;
+    updateChart(token, chart.id, {
+      name: chart.name,
+      type: chart.type,
+      is_favorite: favorite,
+    }).then((updated) => {
+      setChartsList((prev) => prev.map((c) => (c.id === chart.id ? updated : c)));
+    });
+  }
+
   function handleChartDelete(id: number) {
     if (!token) return;
     if (!window.confirm("Eliminare questo grafico e tutti i suoi valori?")) return;
@@ -116,7 +127,7 @@ export function ChartsPage() {
   return (
     <>
       <GenericHeader headerTitle="Grafici" />
-      <main className="mx-auto max-w-2xl px-4 py-4">
+      <main className="w-full px-4 py-4 lg:px-8">
         {isLoading ? (
           <NoteLoadingState />
         ) : chartsList.length === 0 ? (
@@ -134,7 +145,7 @@ export function ChartsPage() {
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {chartsList.map((chart) => (
               <ChartCard
                 key={chart.id}
@@ -145,6 +156,7 @@ export function ChartsPage() {
                   handleEntryAdd(chart.id, value, recordedOn, color)
                 }
                 onDeleteEntry={(entry) => handleEntryDelete(chart.id, entry)}
+                onFavoriteToggle={(favorite) => handleFavoriteToggle(chart, favorite)}
               />
             ))}
           </div>

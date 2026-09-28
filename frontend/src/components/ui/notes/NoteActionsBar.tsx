@@ -299,6 +299,8 @@ export function NoteActionsBar({
               onViewFilterChange(viewFilter === "archived" ? "active" : "archived")
             }
             aria-pressed={viewFilter === "archived"}
+            aria-label="Archiviate"
+            title="Archiviate"
             className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${
               viewFilter === "archived"
                 ? "border-accent bg-accent/10 text-accent"
@@ -306,13 +308,15 @@ export function NoteActionsBar({
             }`}
           >
             <Archive size={14} />
-            Archiviate
+            <span className="hidden sm:inline">Archiviate</span>
           </button>
 
           <button
             type="button"
             onClick={onToggleSelectionMode}
             aria-pressed={selectionMode}
+            aria-label={selectionMode ? "Annulla" : "Seleziona"}
+            title={selectionMode ? "Annulla" : "Seleziona"}
             className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${
               selectionMode
                 ? "border-accent bg-accent/10 text-accent"
@@ -320,7 +324,7 @@ export function NoteActionsBar({
             }`}
           >
             {selectionMode ? <X size={14} /> : <CheckSquare size={14} />}
-            {selectionMode ? "Annulla" : "Seleziona"}
+            <span className="hidden sm:inline">{selectionMode ? "Annulla" : "Seleziona"}</span>
           </button>
 
           <NoteRefreshButton handleNoteRefresh={onRefresh} />

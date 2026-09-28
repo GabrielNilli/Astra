@@ -31,6 +31,7 @@ class NoteController extends Controller
         'block_data.rows.*' => 'array',
         'block_data.rows.*.*' => 'nullable|string|max:255',
         'is_pinned' => 'sometimes|boolean',
+        'is_favorite' => 'sometimes|boolean',
     ];
 
     public function index(Request $request)
@@ -78,6 +79,7 @@ class NoteController extends Controller
             'block_data' => $request->input('block_data'),
             'is_shared' => $request->boolean('is_shared'),
             'is_pinned' => $request->boolean('is_pinned'),
+            'is_favorite' => $request->boolean('is_favorite'),
         ]);
 
         if ($request->filled('section_ids')) {
@@ -110,7 +112,7 @@ class NoteController extends Controller
         ]);
 
         $note->update($request->only(
-            'title', 'content', 'color', 'icon', 'is_shared', 'note_type', 'block_data', 'is_pinned',
+            'title', 'content', 'color', 'icon', 'is_shared', 'note_type', 'block_data', 'is_pinned', 'is_favorite',
         ));
 
         if ($request->has('is_archived')) {

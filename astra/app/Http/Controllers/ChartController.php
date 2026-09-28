@@ -34,6 +34,7 @@ class ChartController extends Controller
             'is_shared' => 'sometimes|boolean',
             'shared_with' => 'sometimes|array',
             'shared_with.*' => 'integer|exists:users,id',
+            'is_favorite' => 'sometimes|boolean',
         ]);
 
         $chart = Chart::create([
@@ -41,6 +42,7 @@ class ChartController extends Controller
             'name' => $request->name,
             'type' => $request->type,
             'is_shared' => $request->boolean('is_shared'),
+            'is_favorite' => $request->boolean('is_favorite'),
         ]);
 
         if ($request->boolean('is_shared') && $request->filled('shared_with')) {
@@ -60,9 +62,10 @@ class ChartController extends Controller
             'is_shared' => 'sometimes|boolean',
             'shared_with' => 'sometimes|array',
             'shared_with.*' => 'integer|exists:users,id',
+            'is_favorite' => 'sometimes|boolean',
         ]);
 
-        $chart->update($request->only('name', 'type', 'is_shared'));
+        $chart->update($request->only('name', 'type', 'is_shared', 'is_favorite'));
 
         if ($request->has('shared_with')) {
             $chart->sharedWithUsers()->sync($request->input('shared_with', []));

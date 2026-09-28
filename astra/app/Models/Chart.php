@@ -16,11 +16,13 @@ class Chart extends Model
         'name',
         'type',
         'is_shared',
+        'is_favorite',
     ];
 
     protected $casts = [
         'type' => ChartType::class,
         'is_shared' => 'boolean',
+        'is_favorite' => 'boolean',
     ];
 
     public function isAccessibleBy(int $userId): bool

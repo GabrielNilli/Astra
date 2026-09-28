@@ -50,6 +50,7 @@ export type Note = {
   is_shared: boolean;
   has_reminder: boolean;
   is_pinned: boolean;
+  is_favorite: boolean;
   is_archived: boolean;
   created_at: string;
   updated_at: string;
@@ -79,6 +80,7 @@ export type NotePayload = {
   is_shared?: boolean;
   shared_with?: number[];
   is_pinned?: boolean;
+  is_favorite?: boolean;
   is_archived?: boolean;
 };
 
@@ -95,6 +97,7 @@ function normalizeNote(note: Note): Note {
     images: note.images ?? [],
     attachments: note.attachments ?? [],
     is_archived: note.is_archived ?? false,
+    is_favorite: note.is_favorite ?? false,
   };
 }
 

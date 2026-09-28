@@ -90,6 +90,7 @@ export function NotesPage() {
     handleNoteChecklistToggle,
     handleNotePinToggle,
     handleNoteArchiveToggle,
+    handleNoteFavoriteToggle,
     handleBulkDelete,
     handleBulkPin,
     handleBulkArchive,
@@ -288,6 +289,7 @@ export function NotesPage() {
                   onChecklistToggle={handleNoteChecklistToggle}
                   onPinToggle={handleNotePinToggle}
                   onArchiveToggle={handleNoteArchiveToggle}
+                  onFavoriteToggle={handleNoteFavoriteToggle}
                   onReminderToggle={handleReminderToggle}
                   selectionMode={selectionMode}
                   selectedIds={selectedIds}
