@@ -53,14 +53,11 @@ function pickHighlightedNotes(notes: Note[]): { note: Note; remindAt: string | n
   return [...withReminder, ...favoriteOnly].slice(0, MAX_ITEMS);
 }
 
-// Le preferite sempre in cima (a prescindere da quando sono state aggiornate),
-// il resto degli spazi riempito dai grafici toccati più di recente.
 function pickHighlightedCharts(charts: Chart[]): Chart[] {
-  const sorted = [...charts].sort((a, b) => b.updated_at.localeCompare(a.updated_at));
-  const favorites = sorted.filter((chart) => chart.is_favorite);
-  const favoriteIds = new Set(favorites.map((chart) => chart.id));
-  const others = sorted.filter((chart) => !favoriteIds.has(chart.id));
-  return [...favorites, ...others].slice(0, MAX_ITEMS);
+  return charts
+    .filter((chart) => chart.is_favorite)
+    .sort((a, b) => b.updated_at.localeCompare(a.updated_at))
+    .slice(0, MAX_ITEMS);
 }
 
 // Un'anteprima breve e specifica per tipo, invece del solo titolo: il testo
@@ -188,7 +185,7 @@ export function DashboardPage() {
           </h2>
           {highlightedCharts.length === 0 ? (
             <div className="rounded-xl border border-dashed border-base-mid/40 p-6 text-center text-sm text-base-mid">
-              Nessun grafico ancora.
+              Nessun grafico preferito.
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
