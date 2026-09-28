@@ -12,7 +12,7 @@ class ChartController extends Controller
     private const RELATIONS = [
         'author:id,name,profile_pic',
         'sharedWithUsers:id,name,profile_pic',
-        'entries:id,chart_id,value,color,recorded_on',
+        'entries:id,chart_id,value,label,color,recorded_on',
     ];
 
     public function index(Request $request)
@@ -35,6 +35,7 @@ class ChartController extends Controller
             'shared_with' => 'sometimes|array',
             'shared_with.*' => 'integer|exists:users,id',
             'is_favorite' => 'sometimes|boolean',
+            'merge_same_label' => 'sometimes|boolean',
         ]);
 
         $chart = Chart::create([
@@ -43,6 +44,7 @@ class ChartController extends Controller
             'type' => $request->type,
             'is_shared' => $request->boolean('is_shared'),
             'is_favorite' => $request->boolean('is_favorite'),
+            'merge_same_label' => $request->boolean('merge_same_label'),
         ]);
 
         if ($request->boolean('is_shared') && $request->filled('shared_with')) {
@@ -63,9 +65,10 @@ class ChartController extends Controller
             'shared_with' => 'sometimes|array',
             'shared_with.*' => 'integer|exists:users,id',
             'is_favorite' => 'sometimes|boolean',
+            'merge_same_label' => 'sometimes|boolean',
         ]);
 
-        $chart->update($request->only('name', 'type', 'is_shared', 'is_favorite'));
+        $chart->update($request->only('name', 'type', 'is_shared', 'is_favorite', 'merge_same_label'));
 
         if ($request->has('shared_with')) {
             $chart->sharedWithUsers()->sync($request->input('shared_with', []));

@@ -12,6 +12,7 @@ class ChartEntry extends Model
     protected $fillable = [
         'chart_id',
         'value',
+        'label',
         'color',
         'recorded_on',
     ];

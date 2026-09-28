@@ -17,12 +17,14 @@ class Chart extends Model
         'type',
         'is_shared',
         'is_favorite',
+        'merge_same_label',
     ];
 
     protected $casts = [
         'type' => ChartType::class,
         'is_shared' => 'boolean',
         'is_favorite' => 'boolean',
+        'merge_same_label' => 'boolean',
     ];
 
     public function isAccessibleBy(int $userId): bool

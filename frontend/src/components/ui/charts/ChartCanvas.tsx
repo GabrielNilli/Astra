@@ -3,7 +3,7 @@
 // =================================
 import { useMemo } from "react";
 import { Bar, Bubble, Doughnut, Line, Pie, PolarArea, Radar, Scatter } from "react-chartjs-2";
-import type { Chart } from "../../../api/charts";
+import type { Chart, ChartEntry } from "../../../api/charts";
 import { sequentialRamp } from "../../../utils/chartColors";
 
 // =================================
@@ -24,13 +24,45 @@ export function formatLabel(recordedOn: string): string {
   });
 }
 
+// L'etichetta testuale (se presente) ha sempre la precedenza sulla data: serve
+// per i dati categorici (es. "Cibo", "Trasporti") dove la data non è il punto.
+export function entryLabel(entry: { label: string | null; recorded_on: string }): string {
+  return entry.label?.trim() || formatLabel(entry.recorded_on);
+}
+
+// Le entry con la stessa etichetta (non vuota) vengono sommate in un unico
+// punto; quelle senza etichetta restano sempre separate (non c'è una chiave
+// comune su cui unirle). Usata solo quando il grafico ha merge_same_label attivo.
+function aggregateByLabel(entries: ChartEntry[]): ChartEntry[] {
+  const groups = new Map<string, ChartEntry[]>();
+  const ungrouped: ChartEntry[] = [];
+
+  for (const entry of entries) {
+    const key = entry.label?.trim();
+    if (!key) {
+      ungrouped.push(entry);
+      continue;
+    }
+    const group = groups.get(key) ?? [];
+    group.push(entry);
+    groups.set(key, group);
+  }
+
+  const merged = [...groups.values()].map((group) => ({
+    ...group[0],
+    value: String(group.reduce((sum, entry) => sum + Number(entry.value), 0)),
+  }));
+
+  return [...merged, ...ungrouped];
+}
+
 // Ogni ramo restituisce una forma dati diversa (etichette+numeri, o punti
 // {x,y}/{x,y,r}) a seconda del tipo scelto: react-chartjs-2 tipizza `data`
 // in base al componente specifico, quindi qui usiamo `any` e lasciamo che
 // sia lo switch a runtime in ChartCanvas a garantire la corrispondenza.
 function buildChartData(chart: Chart, accent: string): any {
-  const entries = chart.entries;
-  const labels = entries.map((entry) => formatLabel(entry.recorded_on));
+  const entries = chart.merge_same_label ? aggregateByLabel(chart.entries) : chart.entries;
+  const labels = entries.map((entry) => entryLabel(entry));
   const values = entries.map((entry) => Number(entry.value));
 
   // Ogni valore porta il colore scelto dall'utente al momento dell'inserimento;

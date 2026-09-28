@@ -84,6 +84,7 @@ export function ChartFormModal({
   const [sharedWith, setSharedWith] = useState<UserSummary[]>(
     chart?.shared_with_users ?? [],
   );
+  const [mergeSameLabel, setMergeSameLabel] = useState(Boolean(chart?.merge_same_label));
 
   // =================================
   //  FUNCTIONS
@@ -97,6 +98,7 @@ export function ChartFormModal({
       type,
       is_shared: isShared,
       shared_with: sharedWith.map((user) => user.id),
+      merge_same_label: mergeSameLabel,
     });
   }
 
@@ -141,6 +143,22 @@ export function ChartFormModal({
           {selectedTypeDescription && (
             <p className="mt-1 text-xs text-base-mid">{selectedTypeDescription}</p>
           )}
+        </div>
+
+        <div>
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-base-dark dark:text-base-light">
+            <input
+              type="checkbox"
+              checked={mergeSameLabel}
+              onChange={(event) => setMergeSameLabel(event.target.checked)}
+              className="accent-accent"
+            />
+            Unisci i valori con la stessa etichetta
+          </label>
+          <p className="mt-1 text-xs text-base-mid">
+            Se aggiungi più valori con la stessa etichetta (es. "Cibo" due volte), vengono sommati
+            invece di comparire come punti separati.
+          </p>
         </div>
 
         <div className="space-y-2">

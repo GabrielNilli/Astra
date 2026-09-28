@@ -19,6 +19,7 @@ export type ChartEntry = {
   id: number;
   chart_id: number;
   value: string;
+  label: string | null;
   color: string | null;
   recorded_on: string;
 };
@@ -30,6 +31,7 @@ export type Chart = {
   type: ChartType;
   is_shared: boolean;
   is_favorite: boolean;
+  merge_same_label: boolean;
   created_at: string;
   updated_at: string;
   author: UserSummary;
@@ -43,10 +45,12 @@ export type ChartPayload = {
   is_shared?: boolean;
   shared_with?: number[];
   is_favorite?: boolean;
+  merge_same_label?: boolean;
 };
 
 export type ChartEntryPayload = {
   value: number;
+  label?: string;
   color?: string;
   recorded_on: string;
 };
@@ -85,6 +89,18 @@ export function createChartEntry(
 ) {
   return apiFetch<ChartEntry>(`/charts/${chartId}/entries`, {
     method: "POST",
+    body: payload,
+    token,
+  });
+}
+
+export function updateChartEntry(
+  token: string,
+  entryId: number,
+  payload: ChartEntryPayload,
+) {
+  return apiFetch<ChartEntry>(`/chart-entries/${entryId}`, {
+    method: "PATCH",
     body: payload,
     token,
   });

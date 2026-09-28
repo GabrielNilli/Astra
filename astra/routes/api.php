@@ -43,5 +43,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/push-subscriptions', [PushSubscriptionController::class, 'destroy']);
     Route::apiResource('charts', ChartController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::post('/charts/{chart}/entries', [ChartEntryController::class, 'store']);
+    Route::patch('/chart-entries/{chartEntry}', [ChartEntryController::class, 'update']);
     Route::delete('/chart-entries/{chartEntry}', [ChartEntryController::class, 'destroy']);
 });

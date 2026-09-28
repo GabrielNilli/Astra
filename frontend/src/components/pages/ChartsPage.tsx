@@ -19,6 +19,7 @@ import {
   deleteChart,
   deleteChartEntry,
   updateChart,
+  updateChartEntry,
   type Chart,
   type ChartEntry,
   type ChartPayload,
@@ -86,10 +87,12 @@ export function ChartsPage() {
     value: number,
     recordedOn: string,
     color: string,
+    label?: string,
   ) {
     if (!token) return;
     createChartEntry(token, chartId, {
       value,
+      label,
       color,
       recorded_on: recordedOn,
     }).then((entry) => {
@@ -101,6 +104,36 @@ export function ChartsPage() {
                 entries: [...c.entries, entry].sort((a, b) =>
                   a.recorded_on.localeCompare(b.recorded_on),
                 ),
+              }
+            : c,
+        ),
+      );
+    });
+  }
+
+  function handleEntryEdit(
+    chartId: number,
+    entryId: number,
+    value: number,
+    recordedOn: string,
+    color: string,
+    label?: string,
+  ) {
+    if (!token) return;
+    updateChartEntry(token, entryId, {
+      value,
+      label,
+      color,
+      recorded_on: recordedOn,
+    }).then((updated) => {
+      setChartsList((prev) =>
+        prev.map((c) =>
+          c.id === chartId
+            ? {
+                ...c,
+                entries: c.entries
+                  .map((e) => (e.id === entryId ? updated : e))
+                  .sort((a, b) => a.recorded_on.localeCompare(b.recorded_on)),
               }
             : c,
         ),
@@ -152,8 +185,11 @@ export function ChartsPage() {
                 chart={chart}
                 onEdit={() => setEditingChart(chart)}
                 onDelete={() => handleChartDelete(chart.id)}
-                onAddEntry={(value, recordedOn, color) =>
-                  handleEntryAdd(chart.id, value, recordedOn, color)
+                onAddEntry={(value, recordedOn, color, label) =>
+                  handleEntryAdd(chart.id, value, recordedOn, color, label)
+                }
+                onEditEntry={(entryId, value, recordedOn, color, label) =>
+                  handleEntryEdit(chart.id, entryId, value, recordedOn, color, label)
                 }
                 onDeleteEntry={(entry) => handleEntryDelete(chart.id, entry)}
                 onFavoriteToggle={(favorite) => handleFavoriteToggle(chart, favorite)}
