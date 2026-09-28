@@ -59,9 +59,29 @@ export function NotesPage() {
     selectedIds,
     toggleSelectionMode,
     handleToggleSelect,
+    handleToggleSelectMany,
     handleLongPressSelect,
     resetSelection,
   } = useNoteSelection();
+
+  // Vista raggruppata per sezione on/off, e quali sezioni sono chiuse: entrambe
+  // ricordate tra una visita e l'altra.
+  const [groupBySection, setGroupBySection] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("notes-group-by-section") !== "false";
+    } catch {
+      return true;
+    }
+  });
+  const [collapsedSections, setCollapsedSections] = useState<Set<number | null>>(() => {
+    try {
+      const stored = localStorage.getItem("notes-collapsed-sections");
+      if (!stored) return new Set();
+      return new Set(JSON.parse(stored) as (number | null)[]);
+    } catch {
+      return new Set();
+    }
+  });
   const {
     handleNoteDelete,
     handleNoteColorChange,
@@ -104,6 +124,18 @@ export function NotesPage() {
     setActiveSectionId(null);
   }
 
+  function toggleSectionCollapse(sectionId: number | null) {
+    setCollapsedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(sectionId)) {
+        next.delete(sectionId);
+      } else {
+        next.add(sectionId);
+      }
+      return next;
+    });
+  }
+
   function handleSectionCreate(name: string) {
     if (!token) return;
     createSection(token, name).then((section) =>
@@ -137,7 +169,9 @@ export function NotesPage() {
     );
   }
 
-  const groupedNotes = groupNotesBySection(notesList, sections, activeSectionId);
+  const groupedNotes = groupBySection
+    ? groupNotesBySection(notesList, sections, activeSectionId)
+    : [{ section: null, notes: notesList }];
   const displayGroups = isSearching
     ? [{ section: null, notes: searchResults ?? [] }]
     : groupedNotes;
@@ -149,6 +183,22 @@ export function NotesPage() {
     if (!token) return;
     listSections(token).then(setSections);
   }, [token]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("notes-group-by-section", String(groupBySection));
+    } catch {
+      // localStorage non disponibile (privacy mode ecc.): niente di grave, si perde solo la preferenza
+    }
+  }, [groupBySection]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("notes-collapsed-sections", JSON.stringify([...collapsedSections]));
+    } catch {
+      // localStorage non disponibile (privacy mode ecc.): niente di grave, si perde solo la preferenza
+    }
+  }, [collapsedSections]);
 
   // Apre direttamente una nota quando si arriva da un link tipo /notes?note=123
   // (es. dal click su una notifica push di un reminder).
@@ -194,6 +244,8 @@ export function NotesPage() {
           onSearchChange={setSearchQuery}
           viewFilter={viewFilter}
           onViewFilterChange={handleViewFilterChange}
+          groupBySection={groupBySection}
+          onGroupBySectionChange={setGroupBySection}
         />
 
         {isSearching && searchResults === null ? (
@@ -240,7 +292,10 @@ export function NotesPage() {
                   selectionMode={selectionMode}
                   selectedIds={selectedIds}
                   onToggleSelect={handleToggleSelect}
+                  onToggleSelectSection={handleToggleSelectMany}
                   onLongPressSelect={handleLongPressSelect}
+                  isCollapsed={collapsedSections.has(section?.id ?? null)}
+                  onToggleCollapse={() => toggleSectionCollapse(section?.id ?? null)}
                 />
               ))}
             </SortableContext>

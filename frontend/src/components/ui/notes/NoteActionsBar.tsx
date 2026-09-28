@@ -2,7 +2,7 @@
 //  IMPORTS
 // =================================
 import { useState } from "react";
-import { List, LayoutGrid, Plus, Check, CheckSquare, X, Search, Archive } from "lucide-react";
+import { List, LayoutGrid, Plus, Check, CheckSquare, X, Search, Archive, Layers } from "lucide-react";
 import {
   DndContext,
   MouseSensor,
@@ -80,6 +80,8 @@ export function NoteActionsBar({
   onSearchChange,
   viewFilter,
   onViewFilterChange,
+  groupBySection,
+  onGroupBySectionChange,
 }: {
   sections: Section[];
   activeSectionId: number | null;
@@ -95,6 +97,8 @@ export function NoteActionsBar({
   onSearchChange: (query: string) => void;
   viewFilter: "active" | "archived";
   onViewFilterChange: (filter: "active" | "archived") => void;
+  groupBySection: boolean;
+  onGroupBySectionChange: (value: boolean) => void;
 }) {
   // =================================
   //  CONSTS
@@ -244,30 +248,47 @@ export function NoteActionsBar({
 
       {/* Riga opzioni: vista lista/griglia a sinistra, refresh a destra */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex overflow-hidden rounded-md border border-base-mid/40">
+        <div className="flex items-center gap-2">
+          <div className="flex overflow-hidden rounded-md border border-base-mid/40">
+            <button
+              type="button"
+              onClick={() => onViewModeChange("grid")}
+              aria-label="Vista a griglia"
+              className={`cursor-pointer p-1.5 ${
+                viewMode === "grid"
+                  ? "bg-accent/10 text-accent"
+                  : "text-base-mid hover:bg-base-mid/10"
+              }`}
+            >
+              <LayoutGrid size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={() => onViewModeChange("list")}
+              aria-label="Vista a lista"
+              className={`cursor-pointer border-l border-base-mid/40 p-1.5 ${
+                viewMode === "list"
+                  ? "bg-accent/10 text-accent"
+                  : "text-base-mid hover:bg-base-mid/10"
+              }`}
+            >
+              <List size={16} />
+            </button>
+          </div>
+
           <button
             type="button"
-            onClick={() => onViewModeChange("grid")}
-            aria-label="Vista a griglia"
-            className={`cursor-pointer p-1.5 ${
-              viewMode === "grid"
-                ? "bg-accent/10 text-accent"
-                : "text-base-mid hover:bg-base-mid/10"
+            onClick={() => onGroupBySectionChange(!groupBySection)}
+            aria-pressed={groupBySection}
+            title={groupBySection ? "Vista raggruppata per sezione" : "Vista senza sezioni"}
+            className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${
+              groupBySection
+                ? "border-accent bg-accent/10 text-accent"
+                : "border-base-mid/25 text-base-mid hover:bg-base-mid/10"
             }`}
           >
-            <LayoutGrid size={16} />
-          </button>
-          <button
-            type="button"
-            onClick={() => onViewModeChange("list")}
-            aria-label="Vista a lista"
-            className={`cursor-pointer border-l border-base-mid/40 p-1.5 ${
-              viewMode === "list"
-                ? "bg-accent/10 text-accent"
-                : "text-base-mid hover:bg-base-mid/10"
-            }`}
-          >
-            <List size={16} />
+            <Layers size={14} />
+            Sezioni
           </button>
         </div>
 

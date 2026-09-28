@@ -1,7 +1,7 @@
 // =================================
 //  IMPORTS
 // =================================
-import { GripVertical } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, GripVertical } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Note } from "../../../api/notes";
@@ -30,7 +30,10 @@ export function SortableSectionGroup({
   selectionMode,
   selectedIds,
   onToggleSelect,
+  onToggleSelectSection,
   onLongPressSelect,
+  isCollapsed,
+  onToggleCollapse,
 }: {
   section: Section | null;
   notes: Note[];
@@ -49,10 +52,15 @@ export function SortableSectionGroup({
   selectionMode: boolean;
   selectedIds: Set<number>;
   onToggleSelect: (id: number) => void;
+  onToggleSelectSection: (ids: number[]) => void;
   onLongPressSelect: (id: number) => void;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
 }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
     useSortable({ id: section?.id ?? "none", disabled: section === null });
+
+  const allSelected = notes.length > 0 && notes.every((note) => selectedIds.has(note.id));
 
   // Le note con tabella vengono renderizzate a parte (fuori dalla griglia a
   // colonne), che altrimenti forzerebbe anche loro alla larghezza fissa della
@@ -103,7 +111,7 @@ export function SortableSectionGroup({
     >
       {showHeader && (
         <div className="mb-2 flex items-center gap-2">
-          {section && (
+          {section && !selectionMode && (
             <button
               type="button"
               ref={setActivatorNodeRef}
@@ -115,38 +123,72 @@ export function SortableSectionGroup({
               <GripVertical size={14} />
             </button>
           )}
-          <h2 className="shrink-0 text-sm font-semibold text-base-dark dark:text-base-light">
+
+          {selectionMode && (
+            <button
+              type="button"
+              onClick={() => onToggleSelectSection(notes.map((note) => note.id))}
+              aria-label={allSelected ? "Deseleziona sezione" : "Seleziona sezione"}
+              className={`flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full border-2 ${
+                allSelected
+                  ? "border-accent bg-accent text-white"
+                  : "border-base-mid/40 text-transparent"
+              }`}
+            >
+              <Check size={12} />
+            </button>
+          )}
+
+          <h2
+            onClick={!selectionMode ? onToggleCollapse : undefined}
+            className={`shrink-0 text-sm font-semibold text-base-dark dark:text-base-light ${!selectionMode ? "cursor-pointer" : ""}`}
+          >
             {section?.name ?? "Senza sezione"}
           </h2>
           <span className="shrink-0 text-xs text-base-mid">{notes.length}</span>
           <div className="h-px flex-1 bg-base-mid/20" />
+
+          {!selectionMode && (
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              aria-label={isCollapsed ? "Espandi sezione" : "Comprimi sezione"}
+              className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full bg-base-mid/10 text-base-mid hover:bg-base-mid/20"
+            >
+              {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}
+            </button>
+          )}
         </div>
       )}
 
-      {tableNotes.length > 0 && (
-        <div className="mb-3 space-y-3">
-          {tableNotes.map((note) => (
-            <div key={note.id} className="w-fit max-w-full">
-              {renderCard(note)}
+      {!isCollapsed && (
+        <>
+          {tableNotes.length > 0 && (
+            <div className="mb-3 space-y-3">
+              {tableNotes.map((note) => (
+                <div key={note.id} className="w-fit max-w-full">
+                  {renderCard(note)}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
+          )}
 
-      {otherNotes.length > 0 && (
-        <div
-          className={
-            viewMode === "grid"
-              ? "columns-2 gap-3 md:columns-3 xl:columns-4 2xl:columns-5"
-              : "columns-1 gap-3 lg:columns-2"
-          }
-        >
-          {otherNotes.map((note) => (
-            <div key={note.id} className="mb-3 break-inside-avoid">
-              {renderCard(note)}
+          {otherNotes.length > 0 && (
+            <div
+              className={
+                viewMode === "grid"
+                  ? "columns-2 gap-3 md:columns-3 xl:columns-4 2xl:columns-5"
+                  : "columns-1 gap-3 lg:columns-2"
+              }
+            >
+              {otherNotes.map((note) => (
+                <div key={note.id} className="mb-3 break-inside-avoid">
+                  {renderCard(note)}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </section>
   );

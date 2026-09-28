@@ -553,7 +553,7 @@ export function NoteCard({
               }}
             />
           ) : (
-            <p className="text-sm whitespace-pre-wrap text-base-dark dark:text-base-light">
+            <p className="text-sm whitespace-pre-wrap break-words text-base-dark dark:text-base-light">
               {note.content}
             </p>
           ))}

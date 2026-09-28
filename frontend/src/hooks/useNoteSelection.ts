@@ -32,6 +32,23 @@ export function useNoteSelection() {
     }
   }
 
+  // Selezione/deselezione di un'intera sezione in un colpo solo: se sono già
+  // tutte selezionate le toglie, altrimenti aggiunge quelle mancanti.
+  function handleToggleSelectMany(ids: number[]) {
+    setSelectedIds((prev) => {
+      const allSelected = ids.length > 0 && ids.every((id) => prev.has(id));
+      const next = new Set(prev);
+      ids.forEach((id) => {
+        if (allSelected) {
+          next.delete(id);
+        } else {
+          next.add(id);
+        }
+      });
+      return next;
+    });
+  }
+
   function resetSelection() {
     setSelectionMode(false);
     setSelectedIds(new Set());
@@ -42,6 +59,7 @@ export function useNoteSelection() {
     selectedIds,
     toggleSelectionMode,
     handleToggleSelect,
+    handleToggleSelectMany,
     handleLongPressSelect,
     resetSelection,
   };
