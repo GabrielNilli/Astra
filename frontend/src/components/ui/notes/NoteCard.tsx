@@ -298,17 +298,20 @@ export function NoteCard({
       <div
         className={`relative rounded-t-2xl px-4 pt-3.5 pb-1 ${CARD_SURFACE}`}
       >
-        <div className="flex min-h-5 items-center gap-2 pr-28">
+        <div className="flex min-h-5 items-center gap-2">
           {badge ? (
+            // Solo icona: il nome resta come tooltip e per gli screen reader
             <div
-              className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold"
+              title={badge.label}
+              aria-label={badge.label}
+              role="img"
+              className="inline-flex shrink-0 items-center rounded-full px-2 py-1"
               style={{
                 backgroundColor: `${badge.color}1f`,
                 color: badge.color,
               }}
             >
               <badge.icon size={12} />
-              {badge.label}
             </div>
           ) : (
             <span />
@@ -322,6 +325,64 @@ export function NoteCard({
               {note.sections.map((section) => `#${section.name}`).join(" ")}
             </span>
           )}
+
+          {/* Azioni nella stessa riga del badge: condividono lo spazio invece di
+              sovrapporsi quando la card è stretta. -my-1 evita che i bottoni (h-7)
+              allarghino la riga. */}
+          <div className="-my-1 -mr-2 ml-auto flex shrink-0 items-center gap-1">
+            {selectionMode ? (
+              <div
+                aria-hidden="true"
+                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${
+                  isSelected
+                    ? "border-accent bg-accent text-white"
+                    : "border-base-mid/40 bg-white/80 dark:bg-base-dark/80"
+                }`}
+              >
+                {isSelected && <Check size={14} />}
+              </div>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={handleFavoriteToggle}
+                  aria-label={
+                    note.is_favorite ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"
+                  }
+                  className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full bg-base-mid/10 text-base-mid hover:bg-base-mid/20"
+                >
+                  <Star
+                    size={18}
+                    className={note.is_favorite ? "fill-amber-400 text-amber-400" : ""}
+                  />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onPinToggle(note.id, !note.is_pinned)}
+                  aria-label={
+                    note.is_pinned ? "Rimuovi dai fissati" : "Fissa in alto"
+                  }
+                  className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full bg-base-mid/10 text-base-mid hover:bg-base-mid/20"
+                >
+                  <Bookmark
+                    size={18}
+                    className={note.is_pinned ? "fill-base-mid" : ""}
+                  />
+                </button>
+
+                <button
+                  ref={menuButtonRef}
+                  type="button"
+                  onClick={() => (menuOpen ? closeMenu() : openMenu())}
+                  className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full bg-base-mid/10 text-base-mid hover:bg-base-mid/20"
+                  aria-label="Azioni nota"
+                >
+                  <MoreHorizontal size={18} />
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="mt-1.5 flex items-center gap-2">
@@ -330,59 +391,6 @@ export function NoteCard({
             {note.title || "Senza titolo"}
           </h3>
         </div>
-
-        {selectionMode ? (
-          <div
-            aria-hidden="true"
-            className={`absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full border-2 ${
-              isSelected
-                ? "border-accent bg-accent text-white"
-                : "border-base-mid/40 bg-white/80 dark:bg-base-dark/80"
-            }`}
-          >
-            {isSelected && <Check size={14} />}
-          </div>
-        ) : (
-          <>
-            <button
-              type="button"
-              onClick={handleFavoriteToggle}
-              aria-label={
-                note.is_favorite ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"
-              }
-              className="absolute top-2 right-[4.5rem] flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-base-mid/10 text-base-mid hover:bg-base-mid/20"
-            >
-              <Star
-                size={18}
-                className={note.is_favorite ? "fill-amber-400 text-amber-400" : ""}
-              />
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onPinToggle(note.id, !note.is_pinned)}
-              aria-label={
-                note.is_pinned ? "Rimuovi dai fissati" : "Fissa in alto"
-              }
-              className="absolute top-2 right-10 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-base-mid/10 text-base-mid hover:bg-base-mid/20"
-            >
-              <Bookmark
-                size={18}
-                className={note.is_pinned ? "fill-base-mid" : ""}
-              />
-            </button>
-
-            <button
-              ref={menuButtonRef}
-              type="button"
-              onClick={() => (menuOpen ? closeMenu() : openMenu())}
-              className="absolute top-2 right-2 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-base-mid/10 text-base-mid hover:bg-base-mid/20"
-              aria-label="Azioni nota"
-            >
-              <MoreHorizontal size={18} />
-            </button>
-          </>
-        )}
 
         {menuOpen &&
           menuPosition &&

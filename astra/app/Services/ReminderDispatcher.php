@@ -17,12 +17,14 @@ class ReminderDispatcher
         $dueReminders = Reminder::where('is_done', false)
             ->whereNull('notified_at')
             ->where('remind_at', '<=', now())
-            ->with(['author', 'sharedWithUsers', 'note'])
+            ->with(['author', 'sharedWithUsers', 'note.sharedWithUsers'])
             ->get();
 
         foreach ($dueReminders as $reminder) {
+            // Il promemoria di una nota condivisa va notificato anche a chi ha ricevuto la nota
             $recipients = collect([$reminder->author])
                 ->merge($reminder->sharedWithUsers)
+                ->merge($reminder->note?->sharedWithUsers ?? [])
                 ->filter()
                 ->unique('id')
                 ->filter(fn ($user) => $user->pushSubscriptions()->exists());

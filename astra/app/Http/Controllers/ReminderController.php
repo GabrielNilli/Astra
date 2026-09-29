@@ -85,7 +85,8 @@ class ReminderController extends Controller
         $userId = $request->user()->id;
 
         $canTouch = $reminder->created_by === $userId
-            || $reminder->shares()->where('user_id', $userId)->exists();
+            || $reminder->shares()->where('user_id', $userId)->exists()
+            || ($reminder->note?->isAccessibleBy($userId) ?? false);
 
         abort_unless($canTouch, 403);
     }

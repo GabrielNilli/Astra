@@ -1,4 +1,5 @@
 {
+  "peacock.remoteColor": "#aa00ff",
   "workbench.colorCustomizations": {
     "activityBar.activeBackground": "#bb33ff",
     "activityBar.activeBorder": "#e7e7e7",
@@ -19,6 +20,7 @@
     "statusBar.debuggingBackground": "#aa00ff",
     "statusBar.debuggingForeground": "#e7e7e7",
     "statusBar.foreground": "#e7e7e7",
+    "statusBar.inactiveBackground": "#aa00ff",
     "statusBarItem.hoverBackground": "#bb33ff",
     "statusBarItem.remoteBackground": "#df9500",
     "statusBarItem.remoteForeground": "#e7e7e7",
@@ -27,5 +29,5 @@
     "titleBar.inactiveBackground": "#aa00ff99",
     "titleBar.inactiveForeground": "#e7e7e799"
   },
-  "peacock.remoteColor": "#aa00ff"
+  "peacock.color": "#aa00ff"
 }

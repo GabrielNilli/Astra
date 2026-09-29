@@ -44,7 +44,7 @@ export function NotesPage() {
   const [sections, setSections] = useState<Section[]>([]);
   const [activeSectionId, setActiveSectionId] = useState<number | null>(null);
   const [viewFilter, setViewFilter] = useState<"active" | "archived">("active");
-  const [viewMode, setViewMode] = useState<NoteViewMode>("grid");
+  const [viewMode, setViewMode] = useState<NoteViewMode>("list");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
 
@@ -273,33 +273,39 @@ export function NotesPage() {
                 .map((group) => group.section!.id)}
               strategy={verticalListSortingStrategy}
             >
-              {displayGroups.map(({ section, notes: groupNotes }) => (
-                <SortableSectionGroup
-                  key={section?.id ?? "none"}
-                  section={section}
-                  notes={groupNotes}
-                  showHeader={!isSearching && displayGroups.length > 1}
-                  viewMode={viewMode}
-                  sections={sections}
-                  onDelete={handleNoteDelete}
-                  onColorChange={handleNoteColorChange}
-                  onSectionsChange={handleNoteSectionsChange}
-                  onDuplicate={handleNoteDuplicate}
-                  onEdit={setEditingNote}
-                  onChecklistToggle={handleNoteChecklistToggle}
-                  onPinToggle={handleNotePinToggle}
-                  onArchiveToggle={handleNoteArchiveToggle}
-                  onFavoriteToggle={handleNoteFavoriteToggle}
-                  onReminderToggle={handleReminderToggle}
-                  selectionMode={selectionMode}
-                  selectedIds={selectedIds}
-                  onToggleSelect={handleToggleSelect}
-                  onToggleSelectSection={handleToggleSelectMany}
-                  onLongPressSelect={handleLongPressSelect}
-                  isCollapsed={collapsedSections.has(section?.id ?? null)}
-                  onToggleCollapse={() => toggleSectionCollapse(section?.id ?? null)}
-                />
-              ))}
+              {displayGroups.map(({ section, notes: groupNotes }) => {
+                const showHeader = !isSearching && displayGroups.length > 1;
+                return (
+                  <SortableSectionGroup
+                    key={section?.id ?? "none"}
+                    section={section}
+                    notes={groupNotes}
+                    showHeader={showHeader}
+                    viewMode={viewMode}
+                    sections={sections}
+                    onDelete={handleNoteDelete}
+                    onColorChange={handleNoteColorChange}
+                    onSectionsChange={handleNoteSectionsChange}
+                    onDuplicate={handleNoteDuplicate}
+                    onEdit={setEditingNote}
+                    onChecklistToggle={handleNoteChecklistToggle}
+                    onPinToggle={handleNotePinToggle}
+                    onArchiveToggle={handleNoteArchiveToggle}
+                    onFavoriteToggle={handleNoteFavoriteToggle}
+                    onReminderToggle={handleReminderToggle}
+                    selectionMode={selectionMode}
+                    selectedIds={selectedIds}
+                    onToggleSelect={handleToggleSelect}
+                    onToggleSelectSection={handleToggleSelectMany}
+                    onLongPressSelect={handleLongPressSelect}
+                    // Senza intestazione non c'è modo di riaprire il gruppo: in vista senza
+                    // sezioni o in ricerca l'unico gruppo ha section null e ereditava lo
+                    // stato compresso di "Senza sezione", nascondendo tutte le note.
+                    isCollapsed={showHeader && collapsedSections.has(section?.id ?? null)}
+                    onToggleCollapse={() => toggleSectionCollapse(section?.id ?? null)}
+                  />
+                );
+              })}
             </SortableContext>
           </DndContext>
         )}
