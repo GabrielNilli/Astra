@@ -62,7 +62,15 @@ class ReminderController extends Controller
             'shared_with.*' => 'integer|exists:users,id',
         ]);
 
-        $reminder->update($request->only('title', 'description', 'remind_at', 'recurrence', 'is_done', 'is_shared'));
+        $reminder->fill($request->only('title', 'description', 'remind_at', 'recurrence', 'is_done', 'is_shared'));
+
+        // Se l'orario cambia il reminder deve poter partire di nuovo: il dispatcher
+        // prende solo quelli con notified_at vuoto.
+        if ($reminder->isDirty('remind_at')) {
+            $reminder->notified_at = null;
+        }
+
+        $reminder->save();
 
         if ($request->has('shared_with')) {
             $reminder->sharedWithUsers()->sync($request->input('shared_with', []));
